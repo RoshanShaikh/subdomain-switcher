@@ -52,17 +52,20 @@
             <p class="text-sm text-gray-600 mb-3">Add New Environment Alias:</p>
             <div class="input-group">
                 <label for="newAliasName">Alias Name:</label>
-                <input type="text" id="newAliasName" placeholder="e.g., Production">
+                <input type="text" id="newAliasName" placeholder="e.g., Production" class="text-input">
             </div>
             <div class="input-group">
                 <label for="newAliasDomain">Domain:</label>
-                <input type="text" id="newAliasDomain" placeholder="e.g., production.example.com">
+                <input type="text" id="newAliasDomain" placeholder="e.g., production.example.com" class="text-input">
             </div>
 
             <div class="input-group">
-                <label for="newAliasColorDisplay">Button Color:</label>
-                <div id="newAliasColorDisplay" class="current-color-display" style="background-color: #3b82f6;">
-                    <!-- This div shows the currently selected color and acts as the toggle -->
+                <label for="customHexInput">Button Color:</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="customHexInput" placeholder="#RRGGBB or #RGB" maxlength="7" class="custom-hex-input flex-grow">
+                    <div id="newAliasColorDisplay" class="color-swatch-preview current-color-display" style="background-color: #3b82f6;">
+                        <!-- Small color swatch display that also acts as toggle -->
+                    </div>
                 </div>
                 <input type="hidden" id="newAliasColorHidden" value="#3b82f6">
 

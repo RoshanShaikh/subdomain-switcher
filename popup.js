@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Custom Color Picker Elements
     const newAliasColorDisplay = document.getElementById('newAliasColorDisplay'); // The div that shows current color and acts as toggle
     const newAliasColorHidden = document.getElementById('newAliasColorHidden');   // Hidden input to store selected color
+    const customHexInput = document.getElementById('customHexInput');     // Primary hex input
     const colorPickerDropdown = document.getElementById('colorPickerDropdown');
     const colorGrid = document.getElementById('colorGrid');
     const colorPickerResetBtn = document.getElementById('colorPickerResetBtn');
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cancelResetBtn = document.getElementById('cancelResetBtn');
 
     let domainAliases = []; // This will hold the current aliases, loaded from storage
+    let editingAliasIndex = -1; // -1 indicates no alias is being edited
 
     // Define the default colors for the color picker grid
     const defaultColors = [
@@ -190,10 +192,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     /**
      * Sets the selected color in the custom picker and updates display.
      * @param {string} color - The hex color code to set.
+     * @param {boolean} fromHexInput - True if the call is originating from manual hex input.
      */
-    function setSelectedColor(color) {
-        newAliasColorHidden.value = color;
-        newAliasColorDisplay.style.backgroundColor = color;
+    function setSelectedColor(color, fromHexInput = false) {
+        // Normalize color to uppercase hex #RRGGBB format for consistency
+        let normalizedColor = color.toUpperCase();
+        if (normalizedColor.length === 4 && normalizedColor.startsWith('#')) { // #RGB to #RRGGBB
+            normalizedColor = '#' + normalizedColor[1] + normalizedColor[1] +
+                              normalizedColor[2] + normalizedColor[2] +
+                              normalizedColor[3] + normalizedColor[3];
+        }
+
+        // Validate the hex code
+        const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+        if (!hexRegex.test(normalizedColor)) {
+            // If invalid, don't set the color, but allow input field to show what user typed
+            return; // Don't update color if invalid
+        }
+
+        newAliasColorHidden.value = normalizedColor;
+        newAliasColorDisplay.style.backgroundColor = normalizedColor;
+        if (!fromHexInput) { // Only update hex input if change came from swatch or default reset
+            customHexInput.value = normalizedColor;
+            clearInputErrors(); // Clear errors if a valid color is selected from swatch/reset
+        }
 
         // Update selected state in the grid
         document.querySelectorAll('.color-swatch').forEach(swatch => {
@@ -202,7 +224,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (checkmark) checkmark.remove(); // Remove existing checkmarks
         });
 
-        const selectedSwatch = document.querySelector(`.color-swatch[data-color="${color.toUpperCase()}"]`);
+        // Find and mark the selected swatch
+        const selectedSwatch = document.querySelector(`.color-swatch[data-color="${normalizedColor}"]`);
         if (selectedSwatch) {
             selectedSwatch.classList.add('selected');
             // Add checkmark SVG
@@ -437,12 +460,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         showView('main');
     });
 
-    // Toggle color picker dropdown
+    // Toggle color picker dropdown with the small color swatch
     newAliasColorDisplay.addEventListener('click', (event) => {
         event.stopPropagation(); // Prevent click from bubbling to document and closing immediately
         colorPickerDropdown.style.display = colorPickerDropdown.style.display === 'block' ? 'none' : 'block';
         if (colorPickerDropdown.style.display === 'block') {
             setSelectedColor(newAliasColorHidden.value); // Ensure correct color is selected when opening
+            customHexInput.focus(); // Focus on the hex input when opening
         }
     });
 
@@ -452,9 +476,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         colorPickerDropdown.style.display = 'none';
     });
 
+    // Live update color when typing in hex input
+    customHexInput.addEventListener('input', () => {
+        const hex = customHexInput.value.trim();
+        const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/; // Validates #RRGGBB or #RGB
+
+        if (hexRegex.test(hex)) {
+            setSelectedColor(hex, true); // Pass true to indicate it's from hex input
+            clearInputErrors(); // Clear any previous error messages
+        } else {
+            // Only show error if the user has typed something that is clearly not a partial hex code (e.g., "abc")
+            // Or if it's too long and still invalid.
+            if (hex.length > 0 && !/^#([A-Fa-f0-9]{0,6})$/.test(hex)) {
+                // Removed redundant error message. Keep `showInputError` only for blur.
+            } else if (hex.length === 7 && !hexRegex.test(hex)) {
+                // Removed redundant error message. Keep `showInputError` only for blur.
+            }
+            // Do not call setSelectedColor for invalid/incomplete input to avoid changing the color display
+        }
+    });
+
+    // Handle blur event for final validation/cleanup on hex input
+    customHexInput.addEventListener('blur', () => {
+        const hex = customHexInput.value.trim();
+        const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+        if (!hexRegex.test(hex) && hex.length > 0) {
+             showInputError(customHexInput, "Invalid hex code. Using default color.");
+             setSelectedColor(defaultButtonColor); // Fallback to default if invalid on blur
+        }
+    });
+
     // Close color picker when clicking outside
     document.addEventListener('click', (event) => {
-        if (colorPickerDropdown.style.display === 'block' && !colorPickerDropdown.contains(event.target) && !newAliasColorDisplay.contains(event.target)) {
+        if (colorPickerDropdown.style.display === 'block' && !colorPickerDropdown.contains(event.target) && !newAliasColorDisplay.contains(event.target) && !customHexInput.contains(event.target)) {
             colorPickerDropdown.style.display = 'none';
         }
     });

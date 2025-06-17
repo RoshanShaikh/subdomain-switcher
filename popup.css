@@ -209,7 +209,9 @@ body {
     color: #4a5568;
     margin-bottom: 5px;
 }
-.input-group input[type="text"] {
+
+/* General text input styling for Alias Name and Domain */
+.text-input {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid #cbd5e0;
@@ -218,19 +220,33 @@ body {
     font-size: 0.9rem;
 }
 
+
 /* Custom Color Picker Styles */
-.current-color-display {
-    width: 100%;
-    height: 38px;
+.color-swatch-preview { /* New class for the small color display */
+    width: 32px; /* Fixed size for preview swatch */
+    height: 32px;
     border: 1px solid #cbd5e0;
     border-radius: 6px;
-    cursor: pointer;
+    flex-shrink: 0; /* Prevent it from shrinking in flex container */
+    cursor: pointer; /* Now clickable to open picker */
+}
+.color-swatch-preview:hover {
+    border-color: #9cd5f5; /* Light blue on hover */
+}
+
+
+.custom-hex-input {
+    flex-grow: 1; /* Allows hex input to take available space */
+    padding: 8px 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
     box-sizing: border-box;
-    transition: border-color 0.2s ease-in-out;
+    font-size: 0.9rem;
+    text-transform: uppercase; /* Ensure hex codes are uppercase */
 }
-.current-color-display:hover {
-    border-color: #9cd5f5;
-}
+
+/* Removed .color-picker-toggle-btn styling as it's no longer used */
+
 
 .color-picker-dropdown {
     position: absolute;
