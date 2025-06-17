@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Environment Changer",
+  "name": "Subdomain Switcher",
   "version": "1.0",
   "description": "Changes the domain of the current page to a configurable alias, keeping the path same.",
   "permissions": [

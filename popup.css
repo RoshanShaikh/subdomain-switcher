@@ -6,6 +6,7 @@ body {
     position: relative;
     min-height: 200px;
 }
+
 .container {
     background-color: #ffffff;
     border-radius: 12px;
@@ -14,6 +15,7 @@ body {
     position: relative;
     z-index: 1;
 }
+
 .header {
     font-size: 1.25rem;
     font-weight: 700;
@@ -22,6 +24,7 @@ body {
     text-align: center;
     position: relative;
 }
+
 .options-icon {
     position: absolute;
     top: 5px;
@@ -33,9 +36,11 @@ body {
     border-radius: 50%;
     transition: background-color 0.2s ease-in-out;
 }
+
 .options-icon:hover {
     background-color: #e2e8f0;
 }
+
 .options-icon svg {
     fill: #64748b;
 }
@@ -46,6 +51,7 @@ body {
     gap: 10px;
     margin-bottom: 10px;
 }
+
 .alias-button {
     background-color: #3b82f6;
     color: white;
@@ -62,14 +68,17 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .alias-button:hover {
     background-color: #2563eb;
     transform: translateY(-1px);
 }
+
 .alias-button:active {
     background-color: #1d4ed8;
     transform: translateY(0);
 }
+
 .message-box {
     background-color: #fff3cd;
     color: #664d03;
@@ -79,33 +88,45 @@ body {
     display: none;
     border: 1px solid #ffecb5;
 }
+
 #currentUrlDisplayTable {
     margin-bottom: 15px;
+    /* Default styling for the table container */
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Ensures rounded corners are applied to content */
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
 }
+
 #currentUrlDisplayTable table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #f8fafc;
-    border-radius: 6px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
 }
-#currentUrlDisplayTable th,
+
 #currentUrlDisplayTable td {
+    /* Only target td directly now */
     padding: 10px;
-    text-align: left;
-    font-size: 0.875rem;
+    text-align: center;
+    /* Centered text as requested */
+    font-size: 1rem;
+    /* Matched button font size */
+    font-weight: 600;
+    /* Matched button font weight */
     color: #555;
+    /* Default text color for cells */
     word-wrap: break-word;
 }
-#currentUrlDisplayTable th {
-    background-color: #e2e8f0;
-    font-weight: 600;
-    width: 35%;
+
+/* Removed #currentUrlDisplayTable th rules */
+
+
+/* Theme for the current URL display table when an alias matches */
+#currentUrlDisplayTable.themed-table {
+    /* These properties will be dynamically set by JS based on alias color */
 }
-#currentUrlDisplayTable td {
-    background-color: #f8fafc;
-}
+
 
 /* General button styles (for Add, Reset, Cancel Edit) */
 .action-btn {
@@ -121,19 +142,24 @@ body {
     margin-top: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
 .action-btn:hover {
     background-color: #3b82f6;
 }
+
 /* Specific overrides for color */
 .add-btn {
     background-color: #10b981;
 }
+
 .add-btn:hover {
     background-color: #059669;
 }
+
 .reset-btn {
     background-color: #ef4444;
 }
+
 .reset-btn:hover {
     background-color: #dc2626;
 }
@@ -142,6 +168,7 @@ body {
 .config-view {
     padding-top: 15px;
 }
+
 .alias-list-item {
     display: flex;
     align-items: center;
@@ -149,9 +176,11 @@ body {
     padding: 8px 0;
     border-bottom: 1px solid #e2e8f0;
 }
+
 .alias-list-item:last-child {
     border-bottom: none;
 }
+
 .alias-list-info {
     font-size: 0.95rem;
     color: #34495e;
@@ -159,7 +188,10 @@ body {
     word-break: break-all;
     padding-right: 10px;
 }
-.edit-icon-btn, .delete-btn { /* Combined styling for edit icon and delete text button */
+
+.edit-icon-btn,
+.delete-btn {
+    /* Combined styling for edit icon and delete text button */
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -167,7 +199,8 @@ body {
     transition: background-color 0.2s ease-in-out;
 }
 
-.edit-icon-btn { /* Specific styles for the edit icon button */
+.edit-icon-btn {
+    /* Specific styles for the edit icon button */
     width: 30px;
     height: 30px;
     display: flex;
@@ -177,16 +210,19 @@ body {
     padding: 4px;
     margin-right: 8px;
 }
+
 .edit-icon-btn:hover {
     background-color: #dbeafe;
 }
+
 .edit-icon-btn svg {
     width: 20px;
     height: 20px;
     fill: #3b82f6;
 }
 
-.delete-btn { /* Specific styles for the '✖' delete text button */
+.delete-btn {
+    /* Specific styles for the '✖' delete text button */
     background-color: #ef4444;
     color: white;
     padding: 6px 10px;
@@ -195,6 +231,7 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     line-height: 1;
 }
+
 .delete-btn:hover {
     background-color: #dc2626;
 }
@@ -203,6 +240,7 @@ body {
     margin-bottom: 10px;
     position: relative;
 }
+
 .input-group label {
     display: block;
     font-size: 0.875rem;
@@ -211,7 +249,9 @@ body {
 }
 
 /* General text input styling for Alias Name and Domain */
-.text-input {
+.text-input,
+.custom-hex-input {
+    /* Apply to both regular text inputs and the hex input */
     width: 100%;
     padding: 8px 10px;
     border: 1px solid #cbd5e0;
@@ -220,32 +260,25 @@ body {
     font-size: 0.9rem;
 }
 
+.custom-hex-input {
+    text-transform: uppercase;
+}
+
 
 /* Custom Color Picker Styles */
-.color-swatch-preview { /* New class for the small color display */
-    width: 32px; /* Fixed size for preview swatch */
+.color-swatch-preview {
+    /* New class for the small color display */
+    width: 32px;
     height: 32px;
     border: 1px solid #cbd5e0;
     border-radius: 6px;
-    flex-shrink: 0; /* Prevent it from shrinking in flex container */
-    cursor: pointer; /* Now clickable to open picker */
+    flex-shrink: 0;
+    cursor: pointer;
 }
+
 .color-swatch-preview:hover {
-    border-color: #9cd5f5; /* Light blue on hover */
+    border-color: #9cd5f5;
 }
-
-
-.custom-hex-input {
-    flex-grow: 1; /* Allows hex input to take available space */
-    padding: 8px 10px;
-    border: 1px solid #cbd5e0;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 0.9rem;
-    text-transform: uppercase; /* Ensure hex codes are uppercase */
-}
-
-/* Removed .color-picker-toggle-btn styling as it's no longer used */
 
 
 .color-picker-dropdown {
@@ -261,6 +294,7 @@ body {
     right: 0;
     margin-top: 5px;
 }
+
 .color-picker-reset {
     display: flex;
     align-items: center;
@@ -271,10 +305,12 @@ body {
     cursor: pointer;
     border-bottom: 1px solid #e2e8f0;
 }
+
 .color-picker-reset:hover {
     background-color: #f0f4f8;
     border-radius: 4px;
 }
+
 .color-picker-reset-icon {
     width: 16px;
     height: 16px;
@@ -288,26 +324,31 @@ body {
     gap: 4px;
     padding: 0 5px 5px 5px;
 }
+
 .color-swatch {
     width: 28px;
     height: 28px;
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     cursor: pointer;
     position: relative;
     transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
 }
+
 .color-swatch:hover {
     transform: scale(1.05);
     box-shadow: 0 0 0 2px #a7f3d0;
 }
+
 .color-swatch.selected {
     border: 2px solid #3b82f6;
     box-shadow: 0 0 0 2px #3b82f6;
 }
+
 .color-swatch.selected .checkmark {
     display: block;
 }
+
 .checkmark {
     display: none;
     position: absolute;
@@ -317,7 +358,7 @@ body {
     width: 16px;
     height: 16px;
     fill: white;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .input-error-message {
@@ -340,6 +381,7 @@ body {
     z-index: 100;
     display: none;
 }
+
 .modal-content {
     background-color: white;
     padding: 25px;
@@ -351,25 +393,30 @@ body {
     transform: scale(0.95);
     transition: transform 0.2s ease-out;
 }
+
 .modal-content.show {
     transform: scale(1);
 }
+
 .modal-title {
     font-size: 1.25rem;
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 15px;
 }
+
 .modal-message {
     font-size: 1rem;
     color: #34495e;
     margin-bottom: 25px;
 }
+
 .modal-actions {
     display: flex;
     justify-content: space-around;
     gap: 15px;
 }
+
 .modal-btn {
     padding: 10px 20px;
     border-radius: 8px;
@@ -379,17 +426,21 @@ body {
     flex-grow: 1;
     transition: background-color 0.2s ease-in-out;
 }
+
 .modal-btn-confirm {
     background-color: #ef4444;
     color: white;
 }
+
 .modal-btn-confirm:hover {
     background-color: #dc2626;
 }
+
 .modal-btn-cancel {
     background-color: #e2e8f0;
     color: #4a5568;
 }
+
 .modal-btn-cancel:hover {
     background-color: #cbd5e0;
 }

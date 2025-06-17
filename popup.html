@@ -1,106 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domain Changer</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="popup.css"> <!-- Link to external CSS file -->
-</head>
-<body>
-    <div class="container">
-        <div id="mainView">
-            <div class="header">
-                Domain Changer
-                <div id="optionsIcon" class="options-icon" title="Configure Aliases">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.07-.75-1.65-1l-.3-.2.43-.72.33-.56c.09-.15.08-.34-.01-.49l-1.65-2.85c-.1-.16-.27-.25-.45-.25h-4c-.18 0-.35.09-.45.25l-1.65 2.85c-.09.15-.1.34-.01.49l.33.56.43.72-.3.2c-.58.25-1.13.6-1.65 1l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.07.75 1.65 1l.3.2-.43.72-.33.56c-.09.15-.08.34.01.49l1.65 2.85c.1.16.27.25.45.25h4c.18 0-.35-.09-.45-.25l-1.65-2.85c-.09-.15-.1-.34-.01-.49l.33-.56.43-.72.3-.2c.58-.25 1.13-.6 1.65-1l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
-                </div>
-            </div>
-
-            <div id="currentUrlDisplayTable">
-                <table>
-                    <tr>
-                        <th>This Page:</th>
-                        <td id="currentUrlDisplay">Loading...</td>
-                    </tr>
-                </table>
-            </div>
-
-            <p class="text-sm text-gray-600 mb-3">Click to switch environment:</p>
-            <div id="aliases-container" class="mb-5">
-                <!-- Aliases will be loaded here as buttons by JavaScript -->
-            </div>
-
-            <!-- Removed openConfigBtn -->
-        </div>
-
-        <div id="configView" style="display: none;">
-            <div class="header">
-                Configure Aliases
-                <div id="backIcon" class="options-icon" title="Back to Switcher">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                </div>
-            </div>
-
-            <p class="text-sm text-gray-600 mb-3">Saved Environments:</p>
-            <div id="config-aliases-container" class="mb-5">
-                <!-- Aliases will be loaded here as text with delete buttons -->
-            </div>
-
-            <hr class="my-4 border-gray-200">
-
-            <p class="text-sm text-gray-600 mb-3">Add New Environment Alias:</p>
-            <div class="input-group">
-                <label for="newAliasName">Alias Name:</label>
-                <input type="text" id="newAliasName" placeholder="e.g., Production" class="text-input">
-            </div>
-            <div class="input-group">
-                <label for="newAliasDomain">Domain:</label>
-                <input type="text" id="newAliasDomain" placeholder="e.g., production.example.com" class="text-input">
-            </div>
-
-            <div class="input-group">
-                <label for="customHexInput">Button Color:</label>
-                <div class="flex items-center gap-2">
-                    <input type="text" id="customHexInput" placeholder="#RRGGBB or #RGB" maxlength="7" class="custom-hex-input flex-grow">
-                    <div id="newAliasColorDisplay" class="color-swatch-preview current-color-display" style="background-color: #3b82f6;">
-                        <!-- Small color swatch display that also acts as toggle -->
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Domain Changer</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="popup.css" />
+        <!-- Link to external CSS file -->
+    </head>
+    <body>
+        <div class="container">
+            <div id="mainView">
+                <div class="header">
+                    Domain Changer
+                    <div
+                        id="optionsIcon"
+                        class="options-icon"
+                        title="Configure Aliases"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.07-.75-1.65-1l-.3-.2.43-.72.33-.56c.09-.15.08-.34-.01-.49l-1.65-2.85c-.1-.16-.27-.25-.45-.25h-4c-.18 0-.35.09-.45.25l-1.65 2.85c-.09.15-.1.34-.01.49l.33.56.43.72-.3.2c-.58.25-1.13.6-1.65 1l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.07.75 1.65 1l.3.2-.43.72-.33.56c-.09.15-.08.34.01.49l1.65 2.85c.1.16.27.25.45.25h4c.18 0-.35-.09-.45-.25l-1.65-2.85c-.09-.15-.1-.34-.01-.49l.33-.56.43-.72.3-.2c.58-.25 1.13-.6 1.65-1l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+                            />
+                        </svg>
                     </div>
                 </div>
-                <input type="hidden" id="newAliasColorHidden" value="#3b82f6">
 
-                <div id="colorPickerDropdown" class="color-picker-dropdown">
-                    <div id="colorPickerResetBtn" class="color-picker-reset">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="color-picker-reset-icon"><path d="M17 3a2.85 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg>
-                        Reset
-                    </div>
-                    <div id="colorGrid" class="color-grid">
-                        <!-- Color swatches will be dynamically added here by JavaScript -->
+                <div id="currentUrlDisplayTable">
+                    <table>
+                        <tr>
+                            <td id="currentUrlDisplay">Loading...</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-3">
+                    Click to switch environment:
+                </p>
+                <div id="aliases-container" class="mb-5">
+                    <!-- Aliases will be loaded here as buttons by JavaScript -->
+                </div>
+
+                <!-- Removed openConfigBtn -->
+            </div>
+
+            <div id="configView" style="display: none">
+                <div class="header">
+                    Configure Aliases
+                    <div
+                        id="backIcon"
+                        class="options-icon"
+                        title="Back to Switcher"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                            />
+                        </svg>
                     </div>
                 </div>
+
+                <p class="text-sm text-gray-600 mb-3">Saved Environments:</p>
+                <div id="config-aliases-container" class="mb-5">
+                    <!-- Aliases will be loaded here as text with delete buttons -->
+                </div>
+
+                <hr class="my-4 border-gray-200" />
+
+                <p class="text-sm text-gray-600 mb-3">
+                    Add New Environment Alias:
+                </p>
+                <div class="input-group">
+                    <label for="newAliasName">Alias Name:</label>
+                    <input
+                        type="text"
+                        id="newAliasName"
+                        placeholder="e.g., Production"
+                        class="text-input"
+                    />
+                </div>
+                <div class="input-group">
+                    <label for="newAliasDomain">Domain:</label>
+                    <input
+                        type="text"
+                        id="newAliasDomain"
+                        placeholder="e.g., production.example.com"
+                        class="text-input"
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label for="customHexInput">Button Color:</label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            id="customHexInput"
+                            placeholder="#RRGGBB or #RGB"
+                            maxlength="7"
+                            class="custom-hex-input flex-grow"
+                        />
+                        <div
+                            id="newAliasColorDisplay"
+                            class="color-swatch-preview current-color-display"
+                            style="background-color: #3b82f6"
+                        >
+                            <!-- Small color swatch display that also acts as toggle -->
+                        </div>
+                    </div>
+                    <input
+                        type="hidden"
+                        id="newAliasColorHidden"
+                        value="#3b82f6"
+                    />
+
+                    <div id="colorPickerDropdown" class="color-picker-dropdown">
+                        <div
+                            id="colorPickerResetBtn"
+                            class="color-picker-reset"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                class="color-picker-reset-icon"
+                            >
+                                <path
+                                    d="M17 3a2.85 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                                />
+                                <path d="M15 5l4 4" />
+                            </svg>
+                            Reset
+                        </div>
+                        <div id="colorGrid" class="color-grid">
+                            <!-- Color swatches will be dynamically added here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <button id="addAliasBtn" class="action-btn add-btn">
+                    Add Alias
+                </button>
+                <button id="resetAliasesBtn" class="action-btn reset-btn mt-2">
+                    Reset All Aliases
+                </button>
+
+                <!-- Removed backBtn as a separate button, replaced by backIcon -->
             </div>
 
-            <button id="addAliasBtn" class="action-btn add-btn">Add Alias</button>
-            <button id="resetAliasesBtn" class="action-btn reset-btn mt-2">Reset All Aliases</button>
-
-            <!-- Removed backBtn as a separate button, replaced by backIcon -->
+            <div id="messageBox" class="message-box"></div>
         </div>
 
-        <div id="messageBox" class="message-box"></div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div id="resetConfirmationModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-title">Confirm Reset</div>
-            <div class="modal-message">Are you sure you want to remove all saved aliases? This action cannot be undone.</div>
-            <div class="modal-actions">
-                <button id="confirmResetBtn" class="modal-btn modal-btn-confirm">Yes, Remove All</button>
-                <button id="cancelResetBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+        <!-- Confirmation Modal -->
+        <div id="resetConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Confirm Reset</div>
+                <div class="modal-message">
+                    Are you sure you want to remove all saved aliases? This
+                    action cannot be undone.
+                </div>
+                <div class="modal-actions">
+                    <button
+                        id="confirmResetBtn"
+                        class="modal-btn modal-btn-confirm"
+                    >
+                        Yes, Remove All
+                    </button>
+                    <button
+                        id="cancelResetBtn"
+                        class="modal-btn modal-btn-cancel"
+                    >
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="popup.js"></script>
-</body>
+        <script src="popup.js"></script>
+    </body>
 </html>
