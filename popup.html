@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Changer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            width: 400px;
+            padding: 15px;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            position: relative;
+            min-height: 200px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .header {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            position: relative;
+        }
+        .options-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .options-icon:hover {
+            background-color: #e2e8f0;
+        }
+        .options-icon svg {
+            fill: #64748b;
+        }
+
+        #aliases-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .alias-button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+            width: auto;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .alias-button:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        .alias-button:active {
+            background-color: #1d4ed8;
+            transform: translateY(0);
+        }
+        .message-box {
+            background-color: #fff3cd;
+            color: #664d03;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border: 1px solid #ffecb5;
+        }
+        #currentUrlDisplayTable {
+            margin-bottom: 15px;
+        }
+        #currentUrlDisplayTable table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        #currentUrlDisplayTable th,
+        #currentUrlDisplayTable td {
+            padding: 10px;
+            text-align: left;
+            font-size: 0.875rem;
+            color: #555;
+            word-wrap: break-word;
+        }
+        #currentUrlDisplayTable th {
+            background-color: #e2e8f0;
+            font-weight: 600;
+            width: 35%;
+        }
+        #currentUrlDisplayTable td {
+            background-color: #f8fafc;
+        }
+
+        /* General button styles (for Add, Reset, Cancel Edit) */
+        .action-btn {
+            background-color: #60a5fa;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            margin-top: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .action-btn:hover {
+            background-color: #3b82f6;
+        }
+        /* Specific overrides for color */
+        .add-btn {
+            background-color: #10b981;
+        }
+        .add-btn:hover {
+            background-color: #059669;
+        }
+        .reset-btn {
+            background-color: #ef4444;
+        }
+        .reset-btn:hover {
+            background-color: #dc2626;
+        }
+
+        /* Styles for Configuration View */
+        .config-view {
+            padding-top: 15px;
+        }
+        .alias-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .alias-list-item:last-child {
+            border-bottom: none;
+        }
+        .alias-list-info {
+            font-size: 0.95rem;
+            color: #34495e;
+            flex-grow: 1;
+            word-break: break-all;
+            padding-right: 10px;
+        }
+        .edit-icon-btn, .delete-btn { /* Combined styling for edit icon and delete text button */
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .edit-icon-btn { /* Specific styles for the edit icon button */
+            width: 30px; /* Fixed width for icon button */
+            height: 30px; /* Fixed height for icon button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            padding: 4px; /* Padding for icon button */
+            margin-right: 8px; /* Space between edit and alias info */
+        }
+        .edit-icon-btn:hover {
+            background-color: #dbeafe; /* Tailwind blue-100 for subtle hover */
+        }
+        .edit-icon-btn svg {
+            width: 20px; /* Size of the SVG icon */
+            height: 20px;
+            fill: #3b82f6; /* Blue fill color for edit icon */
+        }
+
+        .delete-btn { /* Specific styles for the '✖' delete text button */
+            background-color: #ef4444; /* Red background for delete button */
+            color: white; /* White '✖' text */
+            padding: 6px 10px; /* Padding for text button */
+            border-radius: 6px;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            line-height: 1;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+            position: relative; /* For positioning the color picker dropdown */
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+
+        /* Custom Color Picker Styles */
+        .current-color-display {
+            width: 100%;
+            height: 38px; /* Same height as text input */
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .current-color-display:hover {
+            border-color: #9cd5f5; /* Light blue on hover */
+        }
+
+        .color-picker-dropdown {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100; /* Ensure it's on top */
+            padding: 8px;
+            display: none; /* Controlled by JS */
+            left: 0; /* Align with input group */
+            right: 0; /* Full width of input group */
+            margin-top: 5px; /* Space below the current color display */
+        }
+        .color-picker-reset {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .color-picker-reset:hover {
+            background-color: #f0f4f8;
+            border-radius: 4px;
+        }
+        .color-picker-reset-icon {
+            width: 16px;
+            height: 16px;
+            fill: #4a5568;
+            margin-right: 8px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 28px); /* 8 columns, 28px swatch size */
+            gap: 4px;
+            padding: 0 5px 5px 5px; /* Padding inside grid */
+        }
+        .color-swatch {
+            width: 28px; /* Fixed size for each swatch */
+            height: 28px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative; /* For checkmark positioning */
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+        }
+        .color-swatch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px #a7f3d0; /* Tailwind emerald-200 for subtle hover */
+        }
+        .color-swatch.selected {
+            border: 2px solid #3b82f6; /* Stronger border for selected */
+            box-shadow: 0 0 0 2px #3b82f6; /* Blue shadow for selected */
+        }
+        .color-swatch.selected .checkmark {
+            display: block;
+        }
+        .checkmark {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            fill: white; /* Checkmark color */
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4)); /* Small shadow for visibility on light colors */
+        }
+
+        .input-error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Confirmation Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            display: none;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 280px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.2s ease-out;
+        }
+        .modal-content.show {
+            transform: scale(1);
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .modal-message {
+            font-size: 1rem;
+            color: #34495e;
+            margin-bottom: 25px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            flex-grow: 1;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .modal-btn-confirm {
+            background-color: #ef4444;
+            color: white;
+        }
+        .modal-btn-confirm:hover {
+            background-color: #dc2626;
+        }
+        .modal-btn-cancel {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        .modal-btn-cancel:hover {
+            background-color: #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="mainView">
+            <div class="header">
+                Domain Changer
+                <div id="optionsIcon" class="options-icon" title="Configure Aliases">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.07-.75-1.65-1l-.3-.2.43-.72.33-.56c.09-.15.08-.34-.01-.49l-1.65-2.85c-.1-.16-.27-.25-.45-.25h-4c-.18 0-.35.09-.45.25l-1.65 2.85c-.09.15-.1.34-.01.49l.33.56.43.72-.3.2c-.58.25-1.13.6-1.65 1l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.07.75 1.65 1l.3.2-.43.72-.33.56c-.09.15-.08.34.01.49l1.65 2.85c.1.16.27.25.45.25h4c.18 0-.35-.09-.45-.25l-1.65-2.85c-.09-.15-.1-.34-.01-.49l.33-.56.43-.72.3-.2c.58-.25 1.13-.6 1.65-1l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                </div>
+            </div>
+
+            <div id="currentUrlDisplayTable">
+                <table>
+                    <tr>
+                        <th>This Page:</th>
+                        <td id="currentUrlDisplay">Loading...</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-3">Click to switch environment:</p>
+            <div id="aliases-container" class="mb-5">
+                <!-- Aliases will be loaded here as buttons by JavaScript -->
+            </div>
+
+            <!-- Removed openConfigBtn -->
+        </div>
+
+        <div id="configView" style="display: none;">
+            <div class="header">
+                Configure Aliases
+                <div id="backIcon" class="options-icon" title="Back to Switcher">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-600 mb-3">Saved Environments:</p>
+            <div id="config-aliases-container" class="mb-5">
+                <!-- Aliases will be loaded here as text with delete buttons -->
+            </div>
+
+            <hr class="my-4 border-gray-200">
+
+            <p class="text-sm text-gray-600 mb-3">Add New Environment Alias:</p>
+            <div class="input-group">
+                <label for="newAliasName">Alias Name:</label>
+                <input type="text" id="newAliasName" placeholder="e.g., Production">
+            </div>
+            <div class="input-group">
+                <label for="newAliasDomain">Domain:</label>
+                <input type="text" id="newAliasDomain" placeholder="e.g., production.example.com">
+            </div>
+
+            <div class="input-group">
+                <label for="newAliasColorDisplay">Button Color:</label>
+                <div id="newAliasColorDisplay" class="current-color-display" style="background-color: #3b82f6;">
+                    <!-- This div shows the currently selected color and acts as the toggle -->
+                </div>
+                <input type="hidden" id="newAliasColorHidden" value="#3b82f6">
+
+                <div id="colorPickerDropdown" class="color-picker-dropdown">
+                    <div id="colorPickerResetBtn" class="color-picker-reset">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="color-picker-reset-icon"><path d="M17 3a2.85 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg>
+                        Reset
+                    </div>
+                    <div id="colorGrid" class="color-grid">
+                        <!-- Color swatches will be dynamically added here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <button id="addAliasBtn" class="action-btn add-btn">Add Alias</button>
+            <button id="resetAliasesBtn" class="action-btn reset-btn mt-2">Reset All Aliases</button>
+
+            <!-- Removed backBtn as a separate button, replaced by backIcon -->
+        </div>
+
+        <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="resetConfirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Reset</div>
+            <div class="modal-message">Are you sure you want to remove all saved aliases? This action cannot be undone.</div>
+            <div class="modal-actions">
+                <button id="confirmResetBtn" class="modal-btn modal-btn-confirm">Yes, Remove All</button>
+                <button id="cancelResetBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
