@@ -45,10 +45,28 @@ body {
     fill: #64748b;
 }
 
-#aliases-container {
+/* Styles for grouped aliases in main view */
+.domain-group {
+    margin-bottom: 15px;
+}
+
+.domain-group-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4a5568;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.domain-group-buttons {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 10px;
+}
+
+#aliases-container {
+    /* No direct grid on this container anymore, as grouping divs will handle it */
     margin-bottom: 10px;
 }
 

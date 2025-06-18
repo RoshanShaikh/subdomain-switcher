@@ -44,7 +44,7 @@
                     Click to switch environment:
                 </p>
                 <div id="aliases-container" class="mb-5">
-                    <!-- Aliases will be loaded here as buttons by JavaScript -->
+                    <!-- Aliases will be loaded here as grouped buttons by JavaScript -->
                 </div>
 
                 <!-- Removed openConfigBtn -->
@@ -69,16 +69,14 @@
                     </div>
                 </div>
 
-                <p class="text-sm text-gray-600 mb-3">Saved Environments:</p>
+                <p class="text-sm text-gray-600 mb-3">Saved Aliases:</p>
                 <div id="config-aliases-container" class="mb-5">
                     <!-- Aliases will be loaded here as text with delete buttons -->
                 </div>
 
                 <hr class="my-4 border-gray-200" />
 
-                <p class="text-sm text-gray-600 mb-3">
-                    Add New Environment Alias:
-                </p>
+                <p class="text-sm text-gray-600 mb-3">Add New Alias:</p>
                 <div class="input-group">
                     <label for="newAliasName">Alias Name:</label>
                     <input
@@ -89,11 +87,20 @@
                     />
                 </div>
                 <div class="input-group">
-                    <label for="newAliasDomain">Subdomain:</label>
+                    <label for="newAliasSubdomain">Subdomain:</label>
+                    <input
+                        type="text"
+                        id="newAliasSubdomain"
+                        placeholder="e.g., app.example.com"
+                        class="text-input"
+                    />
+                </div>
+                <div class="input-group">
+                    <label for="newAliasDomain">Domain:</label>
                     <input
                         type="text"
                         id="newAliasDomain"
-                        placeholder="e.g., app.example.com"
+                        placeholder="e.g., example.com"
                         class="text-input"
                     />
                 </div>
@@ -184,6 +191,6 @@
             </div>
         </div>
 
-        <script src="popup.js"></script>
+        <script type="module" src="src/main.js"></script>
     </body>
 </html>

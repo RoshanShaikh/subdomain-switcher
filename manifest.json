@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Subdomain Switcher",
   "version": "1.0",
-  "description": "Changes the domain of the current page to a configurable alias, keeping the path same.",
+  "description": "Changes the subdomain of the current page to a configurable alias, keeping the path same.",
   "permissions": [
     "activeTab",
     "scripting",
