@@ -1,5 +1,5 @@
 /**
- * Main application logic for the Domain Changer popup.
+ * Main application logic for the Subdomain Switcher popup.
  * This file orchestrates module interactions, manages state, and sets up event listeners.
  */
 
@@ -8,8 +8,8 @@ import {
     showMessage,
     showInputError,
     clearInputErrors,
-    cleanHostname, // Use cleanHostname instead of normalizeDomain
-    isSameOrSubdomain, // New import for precise domain matching
+    cleanHostname,
+    isSameOrSubdomain,
 } from "./utils.js";
 import {
     setSelectedColor as domSetSelectedColor,
@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         : null;
     const normalizedCurrentHostname = currentHostname
         ? cleanHostname(currentHostname)
-        : null; // Use cleanHostname
+        : null;
 
     updateCurrentUrlDisplay(
         currentUrlDisplay,
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 : null;
             const normalizedUpdatedCurrentHostname = updatedCurrentHostname
                 ? cleanHostname(updatedCurrentHostname)
-                : null; // Use cleanHostname
+                : null;
 
             renderMainViewAliasesWrapper(normalizedUpdatedCurrentHostname);
             renderConfigViewAliasesWrapper(); // Re-render config view if visible
@@ -313,7 +313,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (
                     cleanHostname(testUrl.hostname) !== cleanHostname(subdomain)
                 ) {
-                    // Use cleanHostname
                     showInputError(
                         newAliasSubdomainInput,
                         "Please enter a valid hostname format (e.g., app.example.com).",
@@ -339,7 +338,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const testUrl = new URL(`http://${domain}`);
                 if (cleanHostname(testUrl.hostname) !== cleanHostname(domain)) {
-                    // Use cleanHostname
                     showInputError(
                         newAliasDomainInput,
                         "Please enter a valid domain format (e.g., example.com).",
@@ -356,8 +354,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (!hasError && subdomain && domain) {
-            const normalizedSubdomain = cleanHostname(subdomain); // Use cleanHostname
-            const normalizedDomain = cleanHostname(domain); // Use cleanHostname
+            const normalizedSubdomain = cleanHostname(subdomain);
+            const normalizedDomain = cleanHostname(domain);
 
             if (normalizedSubdomain === normalizedDomain) {
                 showInputError(
@@ -368,7 +366,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else if (
                 !isSameOrSubdomain(normalizedSubdomain, normalizedDomain)
             ) {
-                // Use isSameOrSubdomain
                 showInputError(
                     newAliasSubdomainInput,
                     `Subdomain '${subdomain}' must belong to the '${domain}' domain.`,
@@ -397,13 +394,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        const normalizedNewSubdomain = cleanHostname(subdomain); // Use cleanHostname
+        const normalizedNewSubdomain = cleanHostname(subdomain);
         if (
             domainAliases.some((alias, i) => {
                 return (
                     i !== editingAliasIndex &&
                     cleanHostname(alias.subdomain) === normalizedNewSubdomain
-                ); // Use cleanHostname
+                );
             })
         ) {
             showInputError(
@@ -439,7 +436,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             : null;
         const normalizedCurrentHostnameAfterSave = currentHostnameAfterSave
             ? cleanHostname(currentHostnameAfterSave)
-            : null; // Use cleanHostname
+            : null;
         renderMainViewAliasesWrapper(normalizedCurrentHostnameAfterSave);
         resetAliasForm();
         updateCurrentUrlDisplay(
@@ -473,7 +470,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             : null;
         const normalizedCurrentHostnameAfterReset = currentHostnameAfterReset
             ? cleanHostname(currentHostnameAfterReset)
-            : null; // Use cleanHostname
+            : null;
         renderMainViewAliasesWrapper(normalizedCurrentHostnameAfterReset);
         showMessage(messageBox, "All aliases removed successfully!", "success");
         resetAliasForm();

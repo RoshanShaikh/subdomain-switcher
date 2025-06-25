@@ -1,5 +1,5 @@
 /**
- * Handles data storage operations using Chrome's storage.sync API.
+ * Handles data storage operations for the Subdomain Switcher using Chrome's storage.sync API.
  */
 
 import { showMessage } from "./utils.js"; // Assuming messageBox is passed to showMessage

@@ -1,5 +1,5 @@
 /**
- * Utility functions for the Domain Changer extension.
+ * Utility functions for the Subdomain Switcher extension.
  */
 
 /**

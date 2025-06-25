@@ -1,5 +1,5 @@
 /**
- * Contains functions for DOM manipulation and rendering UI elements.
+ * Contains functions for DOM manipulation and rendering UI elements for the Subdomain Switcher.
  */
 
 import {
@@ -183,7 +183,7 @@ export function renderMainViewAliases(
     let foundMatchingGroup = false; // Flag to check if any relevant group was rendered
 
     domainKeys.forEach((groupKey) => {
-        // Use the new isSameOrSubdomain function for robust comparison
+        // Only render this group if the current tab's full hostname is a subdomain or the exact domain of the groupKey.
         if (
             currentTabFullHostname &&
             isSameOrSubdomain(currentTabFullHostname, groupKey)
