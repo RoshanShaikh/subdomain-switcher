@@ -3,12 +3,13 @@
  */
 
 import {
-    normalizeDomain,
+    cleanHostname,
     adjustColorBrightness,
     getContrastTextColor,
     showInputError,
     clearInputErrors,
     showMessage,
+    isSameOrSubdomain,
 } from "./utils.js";
 import { getCurrentTabUrl, saveAliases } from "./storage.js"; // Need saveAliases for delete operations
 
@@ -112,8 +113,8 @@ export function updateCurrentUrlDisplay(
         // Check if current hostname matches any configured alias (alias.subdomain)
         const matchingAlias = aliases.find(
             (alias) =>
-                normalizeDomain(alias.subdomain) ===
-                normalizeDomain(currentFullHostname),
+                cleanHostname(alias.subdomain) ===
+                cleanHostname(currentFullHostname),
         );
 
         if (matchingAlias) {
@@ -163,7 +164,7 @@ export function renderMainViewAliases(
 
     // Group aliases by their 'domain' field (which is now the grouping domain)
     const groupedAliases = domainAliases.reduce((acc, alias) => {
-        const groupKey = normalizeDomain(alias.domain); // Use the new 'domain' field for grouping
+        const groupKey = cleanHostname(alias.domain); // Use the new 'domain' field for grouping
         if (!acc[groupKey]) {
             acc[groupKey] = [];
         }
@@ -179,77 +180,94 @@ export function renderMainViewAliases(
         return;
     }
 
+    let foundMatchingGroup = false; // Flag to check if any relevant group was rendered
+
     domainKeys.forEach((groupKey) => {
-        const domainGroupDiv = document.createElement("div");
-        domainGroupDiv.className = "domain-group";
+        // Use the new isSameOrSubdomain function for robust comparison
+        if (
+            currentTabFullHostname &&
+            isSameOrSubdomain(currentTabFullHostname, groupKey)
+        ) {
+            foundMatchingGroup = true; // A relevant group is found
 
-        const groupHeader = document.createElement("h4");
-        groupHeader.className = "domain-group-header";
-        groupHeader.textContent = groupKey; // Display the grouping domain
-        domainGroupDiv.appendChild(groupHeader);
+            const domainGroupDiv = document.createElement("div");
+            domainGroupDiv.className = "domain-group";
 
-        const buttonsContainer = document.createElement("div");
-        buttonsContainer.className = "domain-group-buttons";
+            const groupHeader = document.createElement("h4");
+            groupHeader.className = "domain-group-header";
+            groupHeader.textContent = groupKey; // Display the grouping domain
+            domainGroupDiv.appendChild(groupHeader);
 
-        groupedAliases[groupKey].forEach((alias) => {
-            // Only display if alias.subdomain is NOT the current page's full hostname
-            if (normalizeDomain(alias.subdomain) !== currentTabFullHostname) {
-                const aliasButton = document.createElement("button");
-                aliasButton.className = "alias-button";
-                aliasButton.textContent = alias.name;
-                // Store the full target subdomain for navigation
-                aliasButton.value = alias.subdomain; // Use alias.subdomain as the target hostname
+            const buttonsContainer = document.createElement("div");
+            buttonsContainer.className = "domain-group-buttons";
 
-                // Apply custom color, defaulting to original blue if not set
-                const buttonColor = alias.color || defaultButtonColor;
-                aliasButton.style.backgroundColor = buttonColor;
+            groupedAliases[groupKey].forEach((alias) => {
+                // Only display if alias.subdomain is NOT the current page's full hostname
+                if (cleanHostname(alias.subdomain) !== currentTabFullHostname) {
+                    const aliasButton = document.createElement("button");
+                    aliasButton.className = "alias-button";
+                    aliasButton.textContent = alias.name;
+                    // Store the full target subdomain for navigation
+                    aliasButton.value = alias.subdomain; // Use alias.subdomain as the target hostname
 
-                aliasButton.addEventListener("click", async () => {
-                    const targetHostname = aliasButton.value; // This is the full hostname (e.g., sb1.exap.com)
-                    const currentTabUrl = await getCurrentTabUrl(messageBox);
+                    // Apply custom color, defaulting to original blue if not set
+                    const buttonColor = alias.color || defaultButtonColor;
+                    aliasButton.style.backgroundColor = buttonColor;
 
-                    if (!currentTabUrl) {
-                        return;
-                    }
-
-                    try {
-                        const url = new URL(currentTabUrl);
-                        // Replace only the hostname part with the new target hostname
-                        const newUrl = `${url.protocol}//${targetHostname}${url.pathname}${url.search}${url.hash}`;
-
-                        await chrome.tabs.create({ url: newUrl });
-                        showMessage(
+                    aliasButton.addEventListener("click", async () => {
+                        const targetHostname = aliasButton.value; // This is the full hostname (e.g., sb1.exap.com)
+                        const currentTabUrl = await getCurrentTabUrl(
                             messageBox,
-                            `Opened in new tab: ${newUrl}`,
-                            "success",
                         );
-                    } catch (error) {
-                        console.error(
-                            "Error processing URL or opening new tab:",
-                            error,
-                        );
-                        showMessage(
-                            messageBox,
-                            "Error processing URL. Please check the current URL format.",
-                            "error",
-                        );
-                    }
-                });
 
-                buttonsContainer.appendChild(aliasButton);
+                        if (!currentTabUrl) {
+                            return;
+                        }
+
+                        try {
+                            const url = new URL(currentTabUrl);
+                            // Replace only the hostname part with the new target hostname
+                            const newUrl = `${url.protocol}//${targetHostname}${url.pathname}${url.search}${url.hash}`;
+
+                            await chrome.tabs.create({ url: newUrl });
+                            showMessage(
+                                messageBox,
+                                `Opened in new tab: ${newUrl}`,
+                                "success",
+                            );
+                        } catch (error) {
+                            console.error(
+                                "Error processing URL or opening new tab:",
+                                error,
+                            );
+                            showMessage(
+                                messageBox,
+                                "Error processing URL. Please check the current URL format.",
+                                "error",
+                            );
+                        }
+                    });
+
+                    buttonsContainer.appendChild(aliasButton);
+                }
+            });
+
+            // Only append the group if it contains buttons after filtering
+            if (buttonsContainer.children.length > 0) {
+                domainGroupDiv.appendChild(buttonsContainer);
+                aliasesContainer.appendChild(domainGroupDiv);
             }
-        });
-
-        // Only append the group if it contains buttons after filtering
-        if (buttonsContainer.children.length > 0) {
-            domainGroupDiv.appendChild(buttonsContainer);
-            aliasesContainer.appendChild(domainGroupDiv);
         }
     });
 
-    if (aliasesContainer.children.length === 0) {
+    // If no aliases were configured OR no matching group was found for the current domain
+    if (aliasesContainer.children.length === 0 && !foundMatchingGroup) {
         aliasesContainer.textContent =
-            "No other aliases configured or current page is already aliased.";
+            "No aliases configured for this domain, or current page is already aliased. Click the settings icon to add some.";
+    } else if (aliasesContainer.children.length === 0 && foundMatchingGroup) {
+        // This case would mean aliases exist for the domain, but all are the current page.
+        aliasesContainer.textContent =
+            "No other aliases to switch to on this domain.";
     }
 }
 
@@ -367,7 +385,7 @@ export function renderConfigViewAliases(
                 ? new URL(updatedCurrentUrl).hostname
                 : null;
             const normalizedCurrentHostname = updatedCurrentHostname
-                ? normalizeDomain(updatedCurrentHostname)
+                ? cleanHostname(updatedCurrentHostname)
                 : null;
             renderMainViewAliasesCallback(normalizedCurrentHostname); // Use the callback from main.js
             updateCurrentUrlDisplay(

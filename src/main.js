@@ -7,17 +7,18 @@ import { loadAliases, saveAliases, getCurrentTabUrl } from "./storage.js";
 import {
     showMessage,
     showInputError,
-    clearInputErrors, // Now correctly imported from utils.js
-    normalizeDomain,
+    clearInputErrors,
+    cleanHostname, // Use cleanHostname instead of normalizeDomain
+    isSameOrSubdomain, // New import for precise domain matching
 } from "./utils.js";
 import {
-    setSelectedColor as domSetSelectedColor, // Alias to avoid naming conflict
+    setSelectedColor as domSetSelectedColor,
     renderColorGrid,
     updateCurrentUrlDisplay,
     renderMainViewAliases,
     renderConfigViewAliases,
-    resetAliasForm as domResetAliasForm, // Alias to avoid naming conflict
-    showView as domShowView, // Alias to avoid naming conflict
+    resetAliasForm as domResetAliasForm,
+    showView as domShowView,
 } from "./dom.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -172,8 +173,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? new URL(currentTabUrl).hostname
         : null;
     const normalizedCurrentHostname = currentHostname
-        ? normalizeDomain(currentHostname)
-        : null;
+        ? cleanHostname(currentHostname)
+        : null; // Use cleanHostname
 
     updateCurrentUrlDisplay(
         currentUrlDisplay,
@@ -194,8 +195,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? new URL(updatedCurrentUrl).hostname
                 : null;
             const normalizedUpdatedCurrentHostname = updatedCurrentHostname
-                ? normalizeDomain(updatedCurrentHostname)
-                : null;
+                ? cleanHostname(updatedCurrentHostname)
+                : null; // Use cleanHostname
 
             renderMainViewAliasesWrapper(normalizedUpdatedCurrentHostname);
             renderConfigViewAliasesWrapper(); // Re-render config view if visible
@@ -310,9 +311,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const testUrl = new URL(`http://${subdomain}`);
                 if (
-                    normalizeDomain(testUrl.hostname) !==
-                    normalizeDomain(subdomain)
+                    cleanHostname(testUrl.hostname) !== cleanHostname(subdomain)
                 ) {
+                    // Use cleanHostname
                     showInputError(
                         newAliasSubdomainInput,
                         "Please enter a valid hostname format (e.g., app.example.com).",
@@ -337,10 +338,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             try {
                 const testUrl = new URL(`http://${domain}`);
-                if (
-                    normalizeDomain(testUrl.hostname) !==
-                    normalizeDomain(domain)
-                ) {
+                if (cleanHostname(testUrl.hostname) !== cleanHostname(domain)) {
+                    // Use cleanHostname
                     showInputError(
                         newAliasDomainInput,
                         "Please enter a valid domain format (e.g., example.com).",
@@ -357,8 +356,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (!hasError && subdomain && domain) {
-            const normalizedSubdomain = normalizeDomain(subdomain);
-            const normalizedDomain = normalizeDomain(domain);
+            const normalizedSubdomain = cleanHostname(subdomain); // Use cleanHostname
+            const normalizedDomain = cleanHostname(domain); // Use cleanHostname
 
             if (normalizedSubdomain === normalizedDomain) {
                 showInputError(
@@ -366,8 +365,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     "Domain cannot be same as subdomain.",
                 );
                 hasError = true;
-            } else if (!normalizedSubdomain.endsWith(normalizedDomain)) {
-                // Corrected: Only show this error on the subdomain input
+            } else if (
+                !isSameOrSubdomain(normalizedSubdomain, normalizedDomain)
+            ) {
+                // Use isSameOrSubdomain
                 showInputError(
                     newAliasSubdomainInput,
                     `Subdomain '${subdomain}' must belong to the '${domain}' domain.`,
@@ -396,13 +397,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        const normalizedNewSubdomain = normalizeDomain(subdomain);
+        const normalizedNewSubdomain = cleanHostname(subdomain); // Use cleanHostname
         if (
             domainAliases.some((alias, i) => {
                 return (
                     i !== editingAliasIndex &&
-                    normalizeDomain(alias.subdomain) === normalizedNewSubdomain
-                );
+                    cleanHostname(alias.subdomain) === normalizedNewSubdomain
+                ); // Use cleanHostname
             })
         ) {
             showInputError(
@@ -437,8 +438,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             ? new URL(currentTabUrlAfterSave).hostname
             : null;
         const normalizedCurrentHostnameAfterSave = currentHostnameAfterSave
-            ? normalizeDomain(currentHostnameAfterSave)
-            : null;
+            ? cleanHostname(currentHostnameAfterSave)
+            : null; // Use cleanHostname
         renderMainViewAliasesWrapper(normalizedCurrentHostnameAfterSave);
         resetAliasForm();
         updateCurrentUrlDisplay(
@@ -471,8 +472,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             ? new URL(currentTabUrlAfterReset).hostname
             : null;
         const normalizedCurrentHostnameAfterReset = currentHostnameAfterReset
-            ? normalizeDomain(currentHostnameAfterReset)
-            : null;
+            ? cleanHostname(currentHostnameAfterReset)
+            : null; // Use cleanHostname
         renderMainViewAliasesWrapper(normalizedCurrentHostnameAfterReset);
         showMessage(messageBox, "All aliases removed successfully!", "success");
         resetAliasForm();

@@ -72,12 +72,35 @@ export function clearInputErrors() {
 }
 
 /**
- * Normalizes a domain string by removing protocol and "www.".
- * @param {string} domain - The domain string to normalize.
- * @returns {string} The normalized domain.
+ * Cleans a hostname string by removing protocol and "www.".
+ * @param {string} hostname - The hostname string to clean.
+ * @returns {string} The cleaned hostname.
  */
-export function normalizeDomain(domain) {
-    return domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+export function cleanHostname(hostname) {
+    return hostname.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+}
+
+/**
+ * Checks if a candidate hostname is the same as a base domain or a subdomain of it.
+ * e.g., isSameOrSubdomain('sub.example.com', 'example.com') returns true.
+ * e.g., isSameOrSubdomain('example.com', 'example.com') returns true.
+ * e.g., isSameOrSubdomain('test.com', 'example.com') returns false.
+ * @param {string} candidateHostname - The full hostname to check (e.g., "sub.example.com").
+ * @param {string} baseDomain - The base domain to compare against (e.g., "example.com").
+ * @returns {boolean} True if candidateHostname is the same or a subdomain of baseDomain.
+ */
+export function isSameOrSubdomain(candidateHostname, baseDomain) {
+    const cleanedCandidate = cleanHostname(candidateHostname);
+    const cleanedBase = cleanHostname(baseDomain);
+
+    // Case 1: Exact match (e.g., "example.com" and "example.com")
+    if (cleanedCandidate === cleanedBase) {
+        return true;
+    }
+
+    // Case 2: Subdomain match (e.g., "sub.example.com" and "example.com")
+    // Ensure that 'sub.example.com' ends with '.example.com' to avoid matching 'b.com' to 'ab.com'
+    return cleanedCandidate.endsWith("." + cleanedBase);
 }
 
 /**
