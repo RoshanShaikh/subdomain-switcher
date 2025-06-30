@@ -104,7 +104,6 @@
                     </div>
                 </div>
 
-                <!-- Removed "Saved Aliases:" text from here -->
                 <div id="config-aliases-container" class="mb-5">
                     <!-- Aliases will be loaded here as text with delete buttons -->
                 </div>
@@ -238,6 +237,34 @@
                     </button>
                     <button
                         id="cancelImportBtn"
+                        class="modal-btn modal-btn-cancel"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Confirmation Modal for Delete Alias -->
+        <div id="deleteConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Confirm Delete</div>
+                <div class="modal-message">
+                    Are you sure you want to delete this alias: "<span
+                        id="aliasToDeleteName"
+                        class="font-semibold"
+                    ></span
+                    >"? This action cannot be undone.
+                </div>
+                <div class="modal-actions">
+                    <button
+                        id="confirmDeleteBtn"
+                        class="modal-btn modal-btn-confirm"
+                    >
+                        Yes, Delete
+                    </button>
+                    <button
+                        id="cancelDeleteBtn"
                         class="modal-btn modal-btn-cancel"
                     >
                         Cancel

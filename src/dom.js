@@ -286,6 +286,9 @@ export function renderMainViewAliases(
  * @param {Function} renderMainViewAliasesCallback - Callback to re-render main view aliases.
  * @param {HTMLElement} currentUrlDisplay - The DOM element to display the URL/alias.
  * @param {HTMLElement} currentUrlDisplayTable - The table container DOM element for styling.
+ * @param {HTMLElement} deleteConfirmationModal - The modal for delete confirmation.
+ * @param {HTMLElement} aliasToDeleteName - Span within delete confirmation modal to show alias name.
+ * @param {Function} setAliasIndexToDelete - Callback to set the index of the alias to be deleted.
  */
 export function renderConfigViewAliases(
     configAliasesContainer,
@@ -301,6 +304,9 @@ export function renderConfigViewAliases(
     renderMainViewAliasesCallback,
     currentUrlDisplay,
     currentUrlDisplayTable,
+    deleteConfirmationModal, // NEW: Passed modal element
+    aliasToDeleteName, // NEW: Passed alias name display element
+    setAliasIndexToDelete, // NEW: Passed callback to set index
 ) {
     configAliasesContainer.innerHTML = ""; // Clear existing content
 
@@ -382,7 +388,7 @@ export function renderConfigViewAliases(
             aliasInfo.appendChild(document.createElement("br")); // Line break
             aliasInfo.appendChild(document.createTextNode(alias.subdomain)); // Subdomain below
 
-            // COPY BUTTON (SVG ICON) - NEW
+            // COPY BUTTON (SVG ICON)
             const copyButton = document.createElement("button");
             copyButton.className = "icon-btn copy-btn";
             copyButton.innerHTML =
@@ -414,47 +420,13 @@ export function renderConfigViewAliases(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1H9.5l-1 1H5v2h14V4z"/></svg>'; // Trash icon
             deleteButton.title = "Delete alias";
             deleteButton.addEventListener("click", async () => {
-                domainAliases.splice(originalIndex, 1); // Use originalIndex for deletion
-                await saveAliases(domainAliases, messageBox);
-
-                // Re-render config view after deletion
-                renderConfigViewAliases(
-                    configAliasesContainer,
-                    domainAliases,
-                    setEditingAliasIndex,
-                    newAliasNameInput,
-                    newAliasSubdomainInput,
-                    newAliasDomainInput,
-                    setSelectedColor,
-                    addAliasBtn,
-                    messageBox,
-                    resetAliasForm,
-                    renderMainViewAliasesCallback,
-                    currentUrlDisplay,
-                    currentUrlDisplayTable,
-                );
-
-                const updatedCurrentUrl = await getCurrentTabUrl(messageBox);
-                const updatedCurrentHostname = updatedCurrentUrl
-                    ? new URL(updatedCurrentUrl).hostname
-                    : null;
-                const normalizedCurrentHostname = updatedCurrentHostname
-                    ? cleanHostname(updatedCurrentHostname)
-                    : null;
-                renderMainViewAliasesCallback(normalizedCurrentHostname);
-                updateCurrentUrlDisplay(
-                    currentUrlDisplay,
-                    currentUrlDisplayTable,
-                    messageBox,
-                    updatedCurrentUrl,
-                    domainAliases,
-                );
-                showMessage(
-                    messageBox,
-                    "Alias deleted successfully!",
-                    "success",
-                );
-                resetAliasForm();
+                // Show confirmation modal before deleting
+                aliasToDeleteName.textContent = alias.name; // Set alias name in modal message
+                deleteConfirmationModal.style.display = "flex";
+                deleteConfirmationModal
+                    .querySelector(".modal-content")
+                    .classList.add("show");
+                setAliasIndexToDelete(originalIndex); // Pass the index to main.js for deletion if confirmed
             });
 
             aliasItem.appendChild(editButton);

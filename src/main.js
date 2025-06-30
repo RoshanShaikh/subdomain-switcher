@@ -75,8 +75,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const confirmImportBtn = document.getElementById("confirmImportBtn");
     const cancelImportBtn = document.getElementById("cancelImportBtn");
 
+    // NEW: Delete Alias Confirmation Modal Elements
+    const deleteConfirmationModal = document.getElementById(
+        "deleteConfirmationModal",
+    );
+    const aliasToDeleteName = document.getElementById("aliasToDeleteName");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+
     let cancelEditBtn = document.getElementById("cancelEditBtn"); // Will be created/removed dynamically
     let fileToImport = null; // Store the file temporarily for import confirmation
+    let aliasIndexToDelete = -1; // Store the index of the alias to be deleted
 
     // --- Application State ---
     let domainAliases = [];
@@ -162,6 +171,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             renderMainViewAliasesWrapper, // Pass callback for re-rendering main view on delete
             currentUrlDisplay,
             currentUrlDisplayTable,
+            // NEW: Pass delete confirmation modal elements
+            deleteConfirmationModal,
+            aliasToDeleteName,
+            (index) => {
+                aliasIndexToDelete = index;
+            }, // Callback to set aliasIndexToDelete
         );
 
         // Logic to create/append Cancel button when editing starts (moved here from dom.js)
@@ -222,7 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? new URL(updatedCurrentUrl).hostname
                 : null;
             const normalizedUpdatedCurrentHostname = updatedCurrentHostname
-                ? cleanHostname(updatedCurrentHostname)
+                ? cleanHostname(updatedUpdatedHostname)
                 : null;
 
             renderMainViewAliasesWrapper(normalizedUpdatedCurrentHostname);
@@ -636,6 +651,42 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         };
         reader.readAsText(fileToImport);
+    });
+
+    // --- NEW: Delete Alias Confirmation Logic ---
+    confirmDeleteBtn.addEventListener("click", async () => {
+        deleteConfirmationModal.style.display = "none";
+        if (aliasIndexToDelete !== -1) {
+            domainAliases.splice(aliasIndexToDelete, 1); // Use stored index for deletion
+            await saveAliases(domainAliases, messageBox);
+
+            // Re-render config view after deletion
+            renderConfigViewAliasesWrapper();
+
+            const updatedCurrentUrl = await getCurrentTabUrl(messageBox);
+            const updatedCurrentHostname = updatedCurrentUrl
+                ? new URL(updatedCurrentUrl).hostname
+                : null;
+            const normalizedCurrentHostname = updatedCurrentHostname
+                ? cleanHostname(updatedCurrentHostname)
+                : null;
+            renderMainViewAliasesWrapper(normalizedCurrentHostname);
+            updateCurrentUrlDisplay(
+                currentUrlDisplay,
+                currentUrlDisplayTable,
+                messageBox,
+                updatedCurrentUrl,
+                domainAliases,
+            );
+            showMessage(messageBox, "Alias deleted successfully!", "success");
+            resetAliasForm();
+            aliasIndexToDelete = -1; // Reset stored index
+        }
+    });
+
+    cancelDeleteBtn.addEventListener("click", () => {
+        deleteConfirmationModal.style.display = "none";
+        aliasIndexToDelete = -1; // Reset stored index
     });
 
     // --- Actions Icon Dropdown Toggle ---
