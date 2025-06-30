@@ -272,7 +272,7 @@ export function renderMainViewAliases(
 }
 
 /**
- * Renders the domain aliases in the configuration view with delete and edit options.
+ * Renders the domain aliases in the configuration view with delete and edit options, grouped by domain.
  * @param {HTMLElement} configAliasesContainer - The container for the config aliases.
  * @param {Array} domainAliases - The array of domain aliases.
  * @param {Function} setEditingAliasIndex - Callback to set the index of the alias being edited.
@@ -303,107 +303,167 @@ export function renderConfigViewAliases(
     currentUrlDisplayTable,
 ) {
     configAliasesContainer.innerHTML = ""; // Clear existing content
+
+    // Group aliases by their 'domain' field (the grouping domain)
+    const groupedAliases = domainAliases.reduce((acc, alias) => {
+        const groupKey = cleanHostname(alias.domain);
+        if (!acc[groupKey]) {
+            acc[groupKey] = [];
+        }
+        acc[groupKey].push(alias);
+        return acc;
+    }, {});
+
+    const domainKeys = Object.keys(groupedAliases).sort();
+
     if (domainAliases.length === 0) {
         configAliasesContainer.textContent =
             "No aliases configured. Add one below.";
         return;
     }
 
-    domainAliases.forEach((alias, index) => {
-        const aliasItem = document.createElement("div");
-        aliasItem.className = "alias-list-item"; // Use specific class for config view
+    domainKeys.forEach((groupKey) => {
+        const domainGroupDiv = document.createElement("div");
+        domainGroupDiv.className = "domain-group"; // Reuse styling from main view
 
-        // EDIT BUTTON (ICON)
-        const editButton = document.createElement("button");
-        editButton.className = "icon-btn edit-icon-btn"; // Use base icon-btn class
-        editButton.innerHTML =
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>'; // SVG for edit icon (pencil)
-        editButton.title = "Edit alias";
-        editButton.addEventListener("click", () => {
-            setEditingAliasIndex(index); // Set the index for the main module
-            newAliasNameInput.value = alias.name;
-            newAliasSubdomainInput.value = alias.subdomain || ""; // Populate subdomain
-            newAliasDomainInput.value = alias.domain || ""; // Populate domain
-            setSelectedColor(alias.color || defaultButtonColor); // Set color using custom picker logic
-            addAliasBtn.textContent = "Update Alias";
-            addAliasBtn.classList.remove("bg-green-500", "hover:bg-green-700");
-            addAliasBtn.classList.add("bg-yellow-500", "hover:bg-yellow-700");
-            clearInputErrors(); // Clear errors when editing
+        const groupHeader = document.createElement("h4");
+        groupHeader.className = "domain-group-header"; // Reuse styling
+        groupHeader.textContent = groupKey;
+        domainGroupDiv.appendChild(groupHeader);
 
-            // Logic to create/append Cancel button is handled in main.js now
+        // Individual aliases inside this group
+        groupedAliases[groupKey].forEach((alias, indexInGroup) => {
+            // Find the original index of this alias in the main domainAliases array
+            // This is necessary because splice needs the correct index in the original array
+            const originalIndex = domainAliases.findIndex((a) => a === alias);
+
+            const aliasItem = document.createElement("div");
+            aliasItem.className = "alias-list-item";
+
+            // EDIT BUTTON (ICON)
+            const editButton = document.createElement("button");
+            editButton.className = "icon-btn edit-icon-btn";
+            editButton.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+            editButton.title = "Edit alias";
+            editButton.addEventListener("click", () => {
+                setEditingAliasIndex(originalIndex); // Set the original index for editing
+                newAliasNameInput.value = alias.name;
+                newAliasSubdomainInput.value = alias.subdomain || "";
+                newAliasDomainInput.value = alias.domain || "";
+                setSelectedColor(alias.color || defaultButtonColor);
+                addAliasBtn.textContent = "Update Alias";
+                addAliasBtn.classList.remove(
+                    "bg-green-500",
+                    "hover:bg-green-700",
+                );
+                addAliasBtn.classList.add(
+                    "bg-yellow-500",
+                    "hover:bg-yellow-700",
+                );
+                clearInputErrors();
+            });
+
+            const aliasInfo = document.createElement("span");
+            aliasInfo.className = "alias-list-info";
+            const colorSwatch = document.createElement("span");
+            colorSwatch.style.display = "inline-block";
+            colorSwatch.style.width = "16px";
+            colorSwatch.style.height = "16px";
+            colorSwatch.style.borderRadius = "4px";
+            colorSwatch.style.backgroundColor =
+                alias.color || defaultButtonColor;
+            colorSwatch.style.verticalAlign = "middle";
+            colorSwatch.style.marginRight = "8px";
+            colorSwatch.style.border = "1px solid #ccc";
+
+            aliasInfo.appendChild(colorSwatch);
+            aliasInfo.appendChild(document.createTextNode(alias.name)); // Alias Name
+            aliasInfo.appendChild(document.createElement("br")); // Line break
+            aliasInfo.appendChild(document.createTextNode(alias.subdomain)); // Subdomain below
+
+            // COPY BUTTON (SVG ICON) - NEW
+            const copyButton = document.createElement("button");
+            copyButton.className = "icon-btn copy-btn";
+            copyButton.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>'; // Copy icon
+            copyButton.title = "Copy to new alias form";
+            copyButton.addEventListener("click", () => {
+                resetAliasForm(); // Reset form first
+                newAliasNameInput.value = `${alias.name} (Copy)`;
+                newAliasSubdomainInput.value = alias.subdomain;
+                newAliasDomainInput.value = alias.domain;
+                setSelectedColor(alias.color || defaultButtonColor);
+                addAliasBtn.textContent = "Add Alias"; // Ensure button text is "Add Alias"
+                addAliasBtn.classList.remove(
+                    "bg-yellow-500",
+                    "hover:bg-yellow-700",
+                );
+                addAliasBtn.classList.add("bg-green-500", "hover:bg-green-700");
+                showMessage(
+                    messageBox,
+                    `Copied '${alias.name}' to form. Modify and add.`,
+                    "info",
+                );
+            });
+
+            // DELETE BUTTON (SVG TRASH ICON)
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "icon-btn delete-btn"; // Use icon-btn and specific delete-btn
+            deleteButton.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1H9.5l-1 1H5v2h14V4z"/></svg>'; // Trash icon
+            deleteButton.title = "Delete alias";
+            deleteButton.addEventListener("click", async () => {
+                domainAliases.splice(originalIndex, 1); // Use originalIndex for deletion
+                await saveAliases(domainAliases, messageBox);
+
+                // Re-render config view after deletion
+                renderConfigViewAliases(
+                    configAliasesContainer,
+                    domainAliases,
+                    setEditingAliasIndex,
+                    newAliasNameInput,
+                    newAliasSubdomainInput,
+                    newAliasDomainInput,
+                    setSelectedColor,
+                    addAliasBtn,
+                    messageBox,
+                    resetAliasForm,
+                    renderMainViewAliasesCallback,
+                    currentUrlDisplay,
+                    currentUrlDisplayTable,
+                );
+
+                const updatedCurrentUrl = await getCurrentTabUrl(messageBox);
+                const updatedCurrentHostname = updatedCurrentUrl
+                    ? new URL(updatedCurrentUrl).hostname
+                    : null;
+                const normalizedCurrentHostname = updatedCurrentHostname
+                    ? cleanHostname(updatedCurrentHostname)
+                    : null;
+                renderMainViewAliasesCallback(normalizedCurrentHostname);
+                updateCurrentUrlDisplay(
+                    currentUrlDisplay,
+                    currentUrlDisplayTable,
+                    messageBox,
+                    updatedCurrentUrl,
+                    domainAliases,
+                );
+                showMessage(
+                    messageBox,
+                    "Alias deleted successfully!",
+                    "success",
+                );
+                resetAliasForm();
+            });
+
+            aliasItem.appendChild(editButton);
+            aliasItem.appendChild(aliasInfo);
+            aliasItem.appendChild(copyButton); // Append copy button here
+            aliasItem.appendChild(deleteButton);
+            domainGroupDiv.appendChild(aliasItem);
         });
-
-        const aliasInfo = document.createElement("span");
-        aliasInfo.className = "alias-list-info";
-        // Display alias name, subdomain, and domain, and color (as a swatch)
-        const colorSwatch = document.createElement("span");
-        colorSwatch.style.display = "inline-block";
-        colorSwatch.style.width = "16px";
-        colorSwatch.style.height = "16px";
-        colorSwatch.style.borderRadius = "4px";
-        colorSwatch.style.backgroundColor = alias.color || defaultButtonColor; // Use saved color or default blue
-        colorSwatch.style.verticalAlign = "middle";
-        colorSwatch.style.marginRight = "8px";
-        colorSwatch.style.border = "1px solid #ccc";
-
-        aliasInfo.appendChild(colorSwatch);
-        aliasInfo.appendChild(
-            document.createTextNode(
-                `${alias.name} (${alias.subdomain}) - ${alias.domain}`,
-            ),
-        );
-
-        // DELETE BUTTON (TEXT '✖')
-        const deleteButton = document.createElement("button");
-        deleteButton.className = "delete-btn"; // Use delete-btn class for text '✖'
-        deleteButton.textContent = "✖"; // Set text content to '✖'
-        deleteButton.title = "Delete alias";
-        deleteButton.addEventListener("click", async () => {
-            // Remove the alias from the array
-            domainAliases.splice(index, 1);
-            await saveAliases(domainAliases, messageBox); // Save updated list to storage
-
-            // Re-render aliases in config view and main view
-            renderConfigViewAliases(
-                configAliasesContainer,
-                domainAliases,
-                setEditingAliasIndex,
-                newAliasNameInput,
-                newAliasSubdomainInput,
-                newAliasDomainInput,
-                setSelectedColor,
-                addAliasBtn,
-                messageBox,
-                resetAliasForm,
-                renderMainViewAliasesCallback,
-                currentUrlDisplay,
-                currentUrlDisplayTable,
-            );
-
-            const updatedCurrentUrl = await getCurrentTabUrl(messageBox);
-            const updatedCurrentHostname = updatedCurrentUrl
-                ? new URL(updatedCurrentUrl).hostname
-                : null;
-            const normalizedCurrentHostname = updatedCurrentHostname
-                ? cleanHostname(updatedCurrentHostname)
-                : null;
-            renderMainViewAliasesCallback(normalizedCurrentHostname); // Use the callback from main.js
-            updateCurrentUrlDisplay(
-                currentUrlDisplay,
-                currentUrlDisplayTable,
-                messageBox,
-                updatedCurrentUrl,
-                domainAliases,
-            );
-            showMessage(messageBox, "Alias deleted successfully!", "success");
-            resetAliasForm(); // Reset form if deleted the one being edited
-        });
-
-        // Append elements in the desired order: Edit Icon -> Alias Info -> Delete Button
-        aliasItem.appendChild(editButton);
-        aliasItem.appendChild(aliasInfo);
-        aliasItem.appendChild(deleteButton);
-        configAliasesContainer.appendChild(aliasItem);
+        configAliasesContainer.appendChild(domainGroupDiv);
     });
 }
 

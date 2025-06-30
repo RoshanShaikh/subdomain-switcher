@@ -135,6 +135,7 @@ body {
     margin-bottom: 15px;
 }
 
+/* Styles for the header within domain groups */
 .domain-group-header {
     font-size: 1rem;
     font-weight: 700;
@@ -281,52 +282,57 @@ body {
     padding-right: 10px;
 }
 
-.edit-icon-btn,
-.delete-btn {
-    /* Combined styling for edit icon and delete text button */
+/* Icon button base styles */
+.icon-btn {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: background-color 0.2s ease-in-out;
-}
-
-.edit-icon-btn {
-    /* Specific styles for the edit icon button */
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    padding: 4px;
+    padding: 3px;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.icon-btn:hover {
+    background-color: #e0f2fe;
+    /* Light blue hover for all icon buttons */
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Specific icon button styles */
+.edit-icon-btn {
     margin-right: 8px;
 }
 
-.edit-icon-btn:hover {
-    background-color: #dbeafe;
-}
-
 .edit-icon-btn svg {
-    width: 20px;
-    height: 20px;
     fill: #3b82f6;
+    /* Blue fill for edit icon */
 }
 
-.delete-btn {
-    /* Specific styles for the '✖' delete text button */
-    background-color: #ef4444;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    line-height: 1;
+.copy-btn {
+    /* NEW: Styles for the copy button */
+    margin-right: 8px;
 }
 
-.delete-btn:hover {
-    background-color: #dc2626;
+.copy-btn svg {
+    fill: #64748b;
+    /* Gray fill for copy icon */
 }
+
+.delete-btn svg {
+    fill: #EF4444;
+    /* Red fill for delete icon */
+}
+
 
 .input-group {
     margin-bottom: 10px;
