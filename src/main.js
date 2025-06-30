@@ -18,7 +18,7 @@ import {
     renderMainViewAliases,
     renderConfigViewAliases,
     resetAliasForm as domResetAliasForm,
-    showView as domShowView,
+    showView as domShowView, // Renamed to domShowView as we're extending it locally
 } from "./dom.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -36,6 +36,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const configAliasesContainer = document.getElementById(
         "config-aliases-container",
     );
+    const addAliasIcon = document.getElementById("addAliasIcon"); // NEW: Add Alias Icon
+
+    // NEW: Add Alias View Elements
+    const addAliasView = document.getElementById("addAliasView");
+    const backToAddAliasBtn = document.getElementById("backToAddAliasBtn"); // Back button in addAliasView
+
     const newAliasNameInput = document.getElementById("newAliasName");
     const newAliasSubdomainInput = document.getElementById("newAliasSubdomain");
     const newAliasDomainInput = document.getElementById("newAliasDomain");
@@ -49,8 +55,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const colorGrid = document.getElementById("colorGrid");
     const colorPickerResetBtn = document.getElementById("colorPickerResetBtn");
 
-    const addAliasBtn = document.getElementById("addAliasBtn");
-    const backIcon = document.getElementById("backIcon");
+    const addAliasBtn = document.getElementById("addAliasBtn"); // Now in addAliasView
+    const cancelEditBtn = document.getElementById("cancelEditBtn"); // Now in addAliasView and initially hidden
+
+    const backIcon = document.getElementById("backIcon"); // Back button in configView
 
     // Action Menu Elements
     const actionsIcon = document.getElementById("actionsIcon");
@@ -60,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportAliasesBtn = document.getElementById("exportAliasesBtn");
     const importAliasesBtn = document.getElementById("importAliasesBtn");
     const importAliasesFile = document.getElementById("importAliasesFile");
-    const resetAliasesBtn = document.getElementById("resetAliasesBtn"); // Moved from direct popup.html
+    const resetAliasesBtn = document.getElementById("resetAliasesBtn");
 
     // Modals
     const resetConfirmationModal = document.getElementById(
@@ -75,7 +83,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const confirmImportBtn = document.getElementById("confirmImportBtn");
     const cancelImportBtn = document.getElementById("cancelImportBtn");
 
-    // NEW: Delete Alias Confirmation Modal Elements
     const deleteConfirmationModal = document.getElementById(
         "deleteConfirmationModal",
     );
@@ -83,7 +90,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
     const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
-    let cancelEditBtn = document.getElementById("cancelEditBtn"); // Will be created/removed dynamically
     let fileToImport = null; // Store the file temporarily for import confirmation
     let aliasIndexToDelete = -1; // Store the index of the alias to be deleted
 
@@ -134,8 +140,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }, // Callback to update editingAliasIndex in main.js
             cancelEditBtn, // Pass the cancelEditBtn reference
         );
-        // After resetting, ensure the cancelEditBtn reference is updated correctly if it was removed
-        cancelEditBtn = document.getElementById("cancelEditBtn");
+        // The cancelEditBtn reference is already static from HTML, so no need to re-query
+        // cancelEditBtn = document.getElementById('cancelEditBtn'); // REMOVED: This is no longer needed
     };
 
     /**
@@ -158,53 +164,69 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderConfigViewAliases(
             configAliasesContainer,
             domainAliases,
-            (index) => {
-                editingAliasIndex = index;
-            }, // Callback to update editingAliasIndex
-            newAliasNameInput,
-            newAliasSubdomainInput,
-            newAliasDomainInput,
-            setSelectedColor, // Pass the local setSelectedColor wrapper
-            addAliasBtn,
+            // When edit/copy is clicked in config view, we want to transition to addAliasView
+            (index, aliasData) => {
+                // Callback for edit/copy from dom.js
+                editingAliasIndex = index; // Set the index for editing
+                // Pre-fill the form fields
+                newAliasNameInput.value = aliasData.name;
+                newAliasSubdomainInput.value = aliasData.subdomain || "";
+                newAliasDomainInput.value = aliasData.domain || "";
+                setSelectedColor(aliasData.color || "#3b82f6"); // Use default if no color
+                addAliasBtn.textContent =
+                    index !== -1 ? "Update Alias" : "Add Alias";
+                addAliasBtn.classList.remove(
+                    "bg-green-500",
+                    "hover:bg-green-700",
+                    "bg-yellow-500",
+                    "hover:bg-yellow-700",
+                ); // Clear old classes
+                addAliasBtn.classList.add(
+                    index !== -1 ? "bg-yellow-500" : "bg-green-500",
+                    index !== -1 ? "hover:bg-yellow-700" : "hover:bg-green-700",
+                ); // Apply new
+                if (index !== -1) {
+                    // If editing, show cancel edit
+                    cancelEditBtn.style.display = "block";
+                } else {
+                    // If copying, hide cancel edit
+                    cancelEditBtn.style.display = "none";
+                }
+                clearInputErrors();
+                showView("addAlias"); // Transition to the add alias view
+            },
             messageBox,
-            resetAliasForm, // Pass the local resetAliasForm wrapper
-            renderMainViewAliasesWrapper, // Pass callback for re-rendering main view on delete
+            renderMainViewAliasesWrapper,
             currentUrlDisplay,
             currentUrlDisplayTable,
-            // NEW: Pass delete confirmation modal elements
             deleteConfirmationModal,
             aliasToDeleteName,
             (index) => {
                 aliasIndexToDelete = index;
-            }, // Callback to set aliasIndexToDelete
+            },
         );
-
-        // Logic to create/append Cancel button when editing starts (moved here from dom.js)
-        if (editingAliasIndex !== -1 && !cancelEditBtn) {
-            cancelEditBtn = document.createElement("button");
-            cancelEditBtn.id = "cancelEditBtn";
-            cancelEditBtn.className =
-                "action-btn bg-gray-500 hover:bg-gray-700 mt-2";
-            cancelEditBtn.textContent = "Cancel Edit";
-            cancelEditBtn.addEventListener("click", resetAliasForm);
-            addAliasBtn.parentNode.insertBefore(
-                cancelEditBtn,
-                addAliasBtn.nextSibling,
-            );
-        }
     };
 
     /**
-     * Wrapper for showView from dom.js.
-     * @param {string} view - 'main' or 'config'.
+     * Manages which view (main, config, addAlias) is currently displayed.
+     * @param {string} viewName - The ID of the view to show ('main', 'config', 'addAlias').
      */
-    const showView = (view) => {
-        domShowView(
-            mainView,
-            configView,
-            renderConfigViewAliasesWrapper,
-            resetAliasForm,
-        );
+    const showView = (viewName) => {
+        // Hide all views first
+        mainView.style.display = "none";
+        configView.style.display = "none";
+        addAliasView.style.display = "none";
+
+        // Show the requested view
+        if (viewName === "main") {
+            mainView.style.display = "block";
+        } else if (viewName === "config") {
+            configView.style.display = "block";
+            renderConfigViewAliasesWrapper(); // Ensure config aliases are refreshed
+            resetAliasForm(); // Ensure add/edit form is reset when returning to config
+        } else if (viewName === "addAlias") {
+            addAliasView.style.display = "block";
+        }
         closeActionsDropdown(); // Ensure dropdown is closed when view changes
     };
 
@@ -237,11 +259,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? new URL(updatedCurrentUrl).hostname
                 : null;
             const normalizedUpdatedCurrentHostname = updatedCurrentHostname
-                ? cleanHostname(updatedUpdatedHostname)
+                ? cleanHostname(updatedCurrentHostname)
                 : null;
 
             renderMainViewAliasesWrapper(normalizedUpdatedCurrentHostname);
-            renderConfigViewAliasesWrapper(); // Re-render config view if visible
+            // Only re-render config/addAlias view if they are currently visible
+            if (configView.style.display === "block") {
+                renderConfigViewAliasesWrapper();
+            }
+            // If addAliasView is active, form might need reset or update based on external changes, but that's complex
+            // For now, only refresh config view for list and let user re-edit/add
+
             updateCurrentUrlDisplay(
                 currentUrlDisplay,
                 currentUrlDisplayTable,
@@ -254,14 +282,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- Event Listeners ---
 
-    // Switch to config view
+    // Switch to config view from main view
     optionsIcon.addEventListener("click", () => {
         showView("config");
     });
 
-    // Switch back to main view
+    // Switch back to main view from config view
     backIcon.addEventListener("click", () => {
         showView("main");
+    });
+
+    // NEW: Switch to addAliasView from config view via icon button
+    addAliasIcon.addEventListener("click", () => {
+        resetAliasForm(); // Ensure form is clean for a new alias
+        showView("addAlias");
+    });
+
+    // NEW: Switch back to config view from addAliasView
+    backToAddAliasBtn.addEventListener("click", () => {
+        showView("config");
     });
 
     // Toggle color picker dropdown with the small color swatch (newAliasColorDisplay)
@@ -337,7 +376,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Add/Update Alias functionality
+    // Add/Update Alias functionality (now always handled from addAliasView)
     addAliasBtn.addEventListener("click", async () => {
         clearInputErrors();
 
@@ -481,7 +520,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         await saveAliases(domainAliases, messageBox);
-        renderConfigViewAliasesWrapper();
+        showView("config"); // Go back to config view after add/update
         const currentTabUrlAfterSave = await getCurrentTabUrl(messageBox);
         const currentHostnameAfterSave = currentTabUrlAfterSave
             ? new URL(currentTabUrlAfterSave).hostname
@@ -498,6 +537,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentTabUrlAfterSave,
             domainAliases,
         );
+    });
+
+    // Cancel Edit button (only visible when editing an alias)
+    cancelEditBtn.addEventListener("click", () => {
+        resetAliasForm(); // Clear form and reset editing state
+        showView("config"); // Go back to config view
     });
 
     // --- Reset Aliases Functionality (via Actions Menu) ---
@@ -653,15 +698,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         reader.readAsText(fileToImport);
     });
 
-    // --- NEW: Delete Alias Confirmation Logic ---
+    // --- Delete Alias Confirmation Logic ---
     confirmDeleteBtn.addEventListener("click", async () => {
         deleteConfirmationModal.style.display = "none";
         if (aliasIndexToDelete !== -1) {
             domainAliases.splice(aliasIndexToDelete, 1); // Use stored index for deletion
             await saveAliases(domainAliases, messageBox);
 
-            // Re-render config view after deletion
-            renderConfigViewAliasesWrapper();
+            renderConfigViewAliasesWrapper(); // Re-render config view after deletion
 
             const updatedCurrentUrl = await getCurrentTabUrl(messageBox);
             const updatedCurrentHostname = updatedCurrentUrl

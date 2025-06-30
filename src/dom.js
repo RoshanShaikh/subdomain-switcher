@@ -275,14 +275,8 @@ export function renderMainViewAliases(
  * Renders the domain aliases in the configuration view with delete and edit options, grouped by domain.
  * @param {HTMLElement} configAliasesContainer - The container for the config aliases.
  * @param {Array} domainAliases - The array of domain aliases.
- * @param {Function} setEditingAliasIndex - Callback to set the index of the alias being edited.
- * @param {HTMLElement} newAliasNameInput - The input for the alias name.
- * @param {HTMLElement} newAliasSubdomainInput - The input for the subdomain.
- * @param {HTMLElement} newAliasDomainInput - The input for the domain.
- * @param {Function} setSelectedColor - Function to set the selected color in the picker.
- * @param {HTMLElement} addAliasBtn - The add/update alias button.
+ * @param {Function} handleEditOrCopyAlias - Callback to handle editing or copying an alias (now triggers view change).
  * @param {HTMLElement} messageBox - The message box DOM element.
- * @param {Function} resetAliasForm - Function to reset the alias form.
  * @param {Function} renderMainViewAliasesCallback - Callback to re-render main view aliases.
  * @param {HTMLElement} currentUrlDisplay - The DOM element to display the URL/alias.
  * @param {HTMLElement} currentUrlDisplayTable - The table container DOM element for styling.
@@ -293,20 +287,14 @@ export function renderMainViewAliases(
 export function renderConfigViewAliases(
     configAliasesContainer,
     domainAliases,
-    setEditingAliasIndex,
-    newAliasNameInput,
-    newAliasSubdomainInput,
-    newAliasDomainInput,
-    setSelectedColor,
-    addAliasBtn,
+    handleEditOrCopyAlias, // Renamed from setEditingAliasIndex to reflect broader use
     messageBox,
-    resetAliasForm,
     renderMainViewAliasesCallback,
     currentUrlDisplay,
     currentUrlDisplayTable,
-    deleteConfirmationModal, // NEW: Passed modal element
-    aliasToDeleteName, // NEW: Passed alias name display element
-    setAliasIndexToDelete, // NEW: Passed callback to set index
+    deleteConfirmationModal,
+    aliasToDeleteName,
+    setAliasIndexToDelete,
 ) {
     configAliasesContainer.innerHTML = ""; // Clear existing content
 
@@ -353,21 +341,8 @@ export function renderConfigViewAliases(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
             editButton.title = "Edit alias";
             editButton.addEventListener("click", () => {
-                setEditingAliasIndex(originalIndex); // Set the original index for editing
-                newAliasNameInput.value = alias.name;
-                newAliasSubdomainInput.value = alias.subdomain || "";
-                newAliasDomainInput.value = alias.domain || "";
-                setSelectedColor(alias.color || defaultButtonColor);
-                addAliasBtn.textContent = "Update Alias";
-                addAliasBtn.classList.remove(
-                    "bg-green-500",
-                    "hover:bg-green-700",
-                );
-                addAliasBtn.classList.add(
-                    "bg-yellow-500",
-                    "hover:bg-yellow-700",
-                );
-                clearInputErrors();
+                // Pass the original alias data and its index to the main module for editing
+                handleEditOrCopyAlias(originalIndex, alias);
             });
 
             const aliasInfo = document.createElement("span");
@@ -393,24 +368,10 @@ export function renderConfigViewAliases(
             copyButton.className = "icon-btn copy-btn";
             copyButton.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>'; // Copy icon
-            copyButton.title = "Copy to new alias form";
+            copyButton.title = "Copy Alias";
             copyButton.addEventListener("click", () => {
-                resetAliasForm(); // Reset form first
-                newAliasNameInput.value = `${alias.name} (Copy)`;
-                newAliasSubdomainInput.value = alias.subdomain;
-                newAliasDomainInput.value = alias.domain;
-                setSelectedColor(alias.color || defaultButtonColor);
-                addAliasBtn.textContent = "Add Alias"; // Ensure button text is "Add Alias"
-                addAliasBtn.classList.remove(
-                    "bg-yellow-500",
-                    "hover:bg-yellow-700",
-                );
-                addAliasBtn.classList.add("bg-green-500", "hover:bg-green-700");
-                showMessage(
-                    messageBox,
-                    `Copied '${alias.name}' to form. Modify and add.`,
-                    "info",
-                );
+                // Pass a -1 index to signify new alias, and the alias data to pre-fill
+                handleEditOrCopyAlias(-1, alias);
             });
 
             // DELETE BUTTON (SVG TRASH ICON)
@@ -418,7 +379,7 @@ export function renderConfigViewAliases(
             deleteButton.className = "icon-btn delete-btn"; // Use icon-btn and specific delete-btn
             deleteButton.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1H9.5l-1 1H5v2h14V4z"/></svg>'; // Trash icon
-            deleteButton.title = "Delete alias";
+            deleteButton.title = "Delete Alias"; // CHANGED: Updated title here
             deleteButton.addEventListener("click", async () => {
                 // Show confirmation modal before deleting
                 aliasToDeleteName.textContent = alias.name; // Set alias name in modal message
@@ -571,9 +532,9 @@ export function resetAliasForm(
     addAliasBtn.classList.add("bg-green-500", "hover:bg-green-700");
     setEditingAliasIndex(-1); // Reset the index in the main module
     clearInputErrors(); // Corrected: This is now imported from utils.js
-    if (cancelEditBtn && cancelEditBtn.parentNode) {
-        // Check if it exists and has a parent
-        cancelEditBtn.remove();
+    if (cancelEditBtn) {
+        // Check if it exists (it might be null if called from main view initially)
+        cancelEditBtn.style.display = "none"; // Hide the cancel button
     }
     document.getElementById("colorPickerDropdown").style.display = "none"; // Ensure picker is closed
 }
@@ -582,24 +543,24 @@ export function resetAliasForm(
  * Switches between the main view and the configuration view.
  * @param {HTMLElement} mainView - The main view DOM element.
  * @param {HTMLElement} configView - The config view DOM element.
+ * @param {HTMLElement} addAliasView - The add alias view DOM element. // NEW: Added addAliasView
  * @param {Function} renderConfigViewAliasesCallback - Callback to re-render config aliases.
  * @param {Function} resetAliasFormCallback - Callback to reset the alias form.
  */
 export function showView(
     mainView,
     configView,
+    addAliasView,
     renderConfigViewAliasesCallback,
     resetAliasFormCallback,
 ) {
-    if (configView.style.display === "none") {
-        // Currently in mainView, switching to configView
-        mainView.style.display = "none";
-        configView.style.display = "block";
-        renderConfigViewAliasesCallback(); // Re-render config aliases when showing view
-    } else {
-        // Currently in configView, switching to mainView
-        mainView.style.display = "block";
-        configView.style.display = "none";
-        resetAliasFormCallback(); // Reset form when leaving config view
-    }
+    // Hide all views first
+    mainView.style.display = "none";
+    configView.style.display = "none";
+    addAliasView.style.display = "none"; // NEW: Hide addAliasView
+
+    // Show the requested view
+    // This function will be called by main.js with the specific view to show
+    // The main.js will handle specific callbacks like renderConfigViewAliasesCallback
+    // or resetAliasFormCallback as needed for each view transition.
 }

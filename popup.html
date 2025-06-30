@@ -64,6 +64,20 @@
                             />
                         </svg>
                     </div>
+                    <!-- NEW: Add Alias Icon Button -->
+                    <div
+                        id="addAliasIcon"
+                        class="options-icon add-alias-icon"
+                        title="Add New Alias"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                    </div>
                     <div
                         id="actionsIcon"
                         class="options-icon"
@@ -109,8 +123,29 @@
                 </div>
 
                 <hr class="my-4 border-gray-200" />
+                <!-- REMOVED: <button id="goToAddAliasBtn" class="action-btn add-btn">Add New Alias</button> -->
+            </div>
 
-                <p class="text-sm text-gray-600 mb-3">Add New Alias:</p>
+            <!-- NEW: Add Alias View -->
+            <div id="addAliasView" style="display: none">
+                <div class="header">
+                    Add/Edit Alias
+                    <div
+                        id="backToAddAliasBtn"
+                        class="options-icon"
+                        title="Back to Configure Aliases"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                            />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mb-3">Enter Alias Details:</p>
                 <div class="input-group">
                     <label for="newAliasName">Alias Name:</label>
                     <input
@@ -190,6 +225,13 @@
                 <button id="addAliasBtn" class="action-btn add-btn">
                     Add Alias
                 </button>
+                <button
+                    id="cancelEditBtn"
+                    class="action-btn bg-gray-500 hover:bg-gray-700 mt-2"
+                    style="display: none"
+                >
+                    Cancel Edit
+                </button>
             </div>
 
             <div id="messageBox" class="message-box"></div>
@@ -245,7 +287,7 @@
             </div>
         </div>
 
-        <!-- NEW: Confirmation Modal for Delete Alias -->
+        <!-- Confirmation Modal for Delete Alias -->
         <div id="deleteConfirmationModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-title">Confirm Delete</div>

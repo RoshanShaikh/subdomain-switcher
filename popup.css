@@ -54,6 +54,23 @@ body {
     right: auto;
 }
 
+/* Positioning for the new Add Alias Icon */
+#configView .header #addAliasIcon {
+    right: 35px;
+    /* Position to the left of actionsIcon */
+    left: auto;
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+    /* Specific fill color for the plus icon */
+}
+
+#configView .header #addAliasIcon svg {
+    fill: #10b981;
+    /* Green fill color for the plus icon */
+}
+
+
 #configView .header #actionsIcon {
     right: 5px;
     /* Position actions icon to the right */
