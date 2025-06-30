@@ -50,16 +50,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     const colorPickerResetBtn = document.getElementById("colorPickerResetBtn");
 
     const addAliasBtn = document.getElementById("addAliasBtn");
-    const resetAliasesBtn = document.getElementById("resetAliasesBtn");
     const backIcon = document.getElementById("backIcon");
 
+    // Action Menu Elements
+    const actionsIcon = document.getElementById("actionsIcon");
+    const configActionsDropdown = document.getElementById(
+        "configActionsDropdown",
+    );
+    const exportAliasesBtn = document.getElementById("exportAliasesBtn");
+    const importAliasesBtn = document.getElementById("importAliasesBtn");
+    const importAliasesFile = document.getElementById("importAliasesFile");
+    const resetAliasesBtn = document.getElementById("resetAliasesBtn"); // Moved from direct popup.html
+
+    // Modals
     const resetConfirmationModal = document.getElementById(
         "resetConfirmationModal",
     );
     const confirmResetBtn = document.getElementById("confirmResetBtn");
     const cancelResetBtn = document.getElementById("cancelResetBtn");
 
+    const importConfirmationModal = document.getElementById(
+        "importConfirmationModal",
+    );
+    const confirmImportBtn = document.getElementById("confirmImportBtn");
+    const cancelImportBtn = document.getElementById("cancelImportBtn");
+
     let cancelEditBtn = document.getElementById("cancelEditBtn"); // Will be created/removed dynamically
+    let fileToImport = null; // Store the file temporarily for import confirmation
 
     // --- Application State ---
     let domainAliases = [];
@@ -68,6 +85,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- Callbacks/Helper Functions for DOM module ---
     // These functions need access to the module's state or local DOM elements
     // We create wrappers to pass the necessary context.
+
+    /**
+     * Closes the actions dropdown menu.
+     */
+    const closeActionsDropdown = () => {
+        if (!configActionsDropdown.classList.contains("hidden")) {
+            configActionsDropdown.classList.add("hidden");
+        }
+    };
 
     /**
      * Wrapper for setSelectedColor from dom.js to pass local DOM elements.
@@ -164,6 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             renderConfigViewAliasesWrapper,
             resetAliasForm,
         );
+        closeActionsDropdown(); // Ensure dropdown is closed when view changes
     };
 
     // --- Initialization ---
@@ -273,8 +300,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Close color picker when clicking outside
+    // Close color picker and actions dropdown when clicking outside
     document.addEventListener("click", (event) => {
+        // Close color picker
         if (
             colorPickerDropdown.style.display === "block" &&
             !colorPickerDropdown.contains(event.target) &&
@@ -282,6 +310,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             !customHexInput.contains(event.target)
         ) {
             colorPickerDropdown.style.display = "none";
+        }
+
+        // Close actions dropdown
+        if (
+            !configActionsDropdown.classList.contains("hidden") &&
+            !actionsIcon.contains(event.target) &&
+            !configActionsDropdown.contains(event.target)
+        ) {
+            closeActionsDropdown();
         }
     });
 
@@ -448,8 +485,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     });
 
-    // Reset All Aliases functionality (opens confirmation modal)
+    // --- Reset Aliases Functionality (via Actions Menu) ---
     resetAliasesBtn.addEventListener("click", () => {
+        closeActionsDropdown(); // Close the dropdown immediately
         resetConfirmationModal.style.display = "flex";
         resetConfirmationModal
             .querySelector(".modal-content")
@@ -487,5 +525,122 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Cancel Reset action
     cancelResetBtn.addEventListener("click", () => {
         resetConfirmationModal.style.display = "none";
+    });
+
+    // --- Export/Import Aliases Functionality (via Actions Menu) ---
+    exportAliasesBtn.addEventListener("click", async () => {
+        closeActionsDropdown(); // Close the dropdown immediately
+        const aliasesToExport = await loadAliases(messageBox); // Get current aliases
+        const jsonString = JSON.stringify(aliasesToExport, null, 2); // Pretty print JSON
+
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "subdomain_switcher_aliases.json"; // Default filename
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showMessage(messageBox, "Aliases exported successfully!", "success");
+    });
+
+    importAliasesBtn.addEventListener("click", () => {
+        closeActionsDropdown(); // Close the dropdown immediately
+        // Show import confirmation modal first
+        importConfirmationModal.style.display = "flex";
+        importConfirmationModal
+            .querySelector(".modal-content")
+            .classList.add("show");
+    });
+
+    confirmImportBtn.addEventListener("click", () => {
+        importConfirmationModal.style.display = "none";
+        importAliasesFile.click(); // Trigger the hidden file input click only after confirmation
+    });
+
+    cancelImportBtn.addEventListener("click", () => {
+        importConfirmationModal.style.display = "none";
+        importAliasesFile.value = ""; // Clear selected file if canceled
+        fileToImport = null; // Clear the temporary file reference
+    });
+
+    importAliasesFile.addEventListener("change", (event) => {
+        fileToImport = event.target.files[0]; // Store file reference
+        if (!fileToImport) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+
+                // Basic validation of imported data structure
+                const isValid =
+                    Array.isArray(importedData) &&
+                    importedData.every(
+                        (alias) =>
+                            typeof alias === "object" &&
+                            alias !== null &&
+                            typeof alias.name === "string" &&
+                            typeof alias.subdomain === "string" &&
+                            typeof alias.domain === "string" &&
+                            typeof alias.color === "string" &&
+                            /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(
+                                alias.color,
+                            ), // Validate color format
+                    );
+
+                if (!isValid) {
+                    showMessage(
+                        messageBox,
+                        "Invalid JSON format or data structure in the imported file. Please ensure it's an array of alias objects.",
+                        "error",
+                    );
+                    return;
+                }
+
+                domainAliases = importedData; // Replace current aliases
+                await saveAliases(domainAliases, messageBox);
+                renderConfigViewAliasesWrapper(); // Re-render the config view
+                const currentTabUrlAfterImport = await getCurrentTabUrl(
+                    messageBox,
+                );
+                const currentHostnameAfterImport = currentTabUrlAfterImport
+                    ? new URL(currentTabUrlAfterImport).hostname
+                    : null;
+                const normalizedCurrentHostnameAfterImport =
+                    currentHostnameAfterImport
+                        ? cleanHostname(currentHostnameAfterImport)
+                        : null;
+                renderMainViewAliasesWrapper(
+                    normalizedCurrentHostnameAfterImport,
+                ); // Re-render main view
+                showMessage(
+                    messageBox,
+                    "Aliases imported successfully!",
+                    "success",
+                );
+            } catch (error) {
+                console.error("Error parsing or importing aliases:", error);
+                showMessage(
+                    messageBox,
+                    "Error importing aliases. Make sure the file is a valid JSON.",
+                    "error",
+                );
+            } finally {
+                // Clear the file input value so the same file can be selected again
+                event.target.value = "";
+                fileToImport = null; // Clear the temporary file reference
+            }
+        };
+        reader.readAsText(fileToImport);
+    });
+
+    // --- Actions Icon Dropdown Toggle ---
+    actionsIcon.addEventListener("click", (event) => {
+        event.stopPropagation(); // Prevent document click from immediately closing it
+        configActionsDropdown.classList.toggle("hidden");
     });
 });

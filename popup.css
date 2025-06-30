@@ -35,6 +35,8 @@ body {
     padding: 5px;
     border-radius: 50%;
     transition: background-color 0.2s ease-in-out;
+    z-index: 20;
+    /* Ensure icon is above dropdown when dropdown is open */
 }
 
 .options-icon:hover {
@@ -44,6 +46,89 @@ body {
 .options-icon svg {
     fill: #64748b;
 }
+
+/* Specific positioning for back and actions icon in config view header */
+#configView .header #backIcon {
+    left: 5px;
+    /* Position back icon to the left */
+    right: auto;
+}
+
+#configView .header #actionsIcon {
+    right: 5px;
+    /* Position actions icon to the right */
+    left: auto;
+    /* Added styles for actionsIcon to make it smaller as requested */
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+}
+
+
+/* Styles for the new actions dropdown menu */
+.config-actions-dropdown {
+    position: absolute;
+    top: 40px;
+    /* Position below the header */
+    right: 0px;
+    /* Align to the right of the header */
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 15;
+    /* Above other content but below header icons */
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    /* Ensure enough width for buttons */
+}
+
+.config-actions-dropdown.hidden {
+    display: none;
+}
+
+.config-actions-dropdown .dropdown-btn {
+    background-color: #f0f4f8;
+    /* Light gray background */
+    color: #4a5568;
+    /* Darker text */
+    padding: 6px 10px;
+    /* Reduced padding to make buttons smaller */
+    font-size: 0.875rem;
+    /* Slightly smaller font size */
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    text-align: left;
+    margin-bottom: 4px;
+    /* Space between buttons */
+}
+
+.config-actions-dropdown .dropdown-btn:last-child {
+    margin-bottom: 0;
+}
+
+.config-actions-dropdown .dropdown-btn:hover {
+    background-color: #e2e8f0;
+    /* Slightly darker on hover */
+    color: #2d3748;
+}
+
+.config-actions-dropdown .reset-btn-dropdown {
+    color: #ef4444;
+    /* Specific red color for reset button text */
+}
+
+.config-actions-dropdown .reset-btn-dropdown:hover {
+    background-color: #fee2e2;
+    /* Light red hover for reset */
+}
+
 
 /* Styles for grouped aliases in main view */
 .domain-group {
@@ -140,12 +225,6 @@ body {
 /* Removed #currentUrlDisplayTable th rules */
 
 
-/* Theme for the current URL display table when an alias matches */
-#currentUrlDisplayTable.themed-table {
-    /* These properties will be dynamically set by JS based on alias color */
-}
-
-
 /* General button styles (for Add, Reset, Cancel Edit) */
 .action-btn {
     background-color: #60a5fa;
@@ -174,13 +253,8 @@ body {
     background-color: #059669;
 }
 
-.reset-btn {
-    background-color: #ef4444;
-}
+/* Removed .reset-btn specific styles as it's now a dropdown-btn */
 
-.reset-btn:hover {
-    background-color: #dc2626;
-}
 
 /* Styles for Configuration View */
 .config-view {
@@ -363,10 +437,6 @@ body {
     box-shadow: 0 0 0 2px #3b82f6;
 }
 
-.color-swatch.selected .checkmark {
-    display: block;
-}
-
 .checkmark {
     display: none;
     position: absolute;
@@ -385,7 +455,7 @@ body {
     margin-top: 0.25rem;
 }
 
-/* Confirmation Modal Styles */
+/* Confirmation Modal Styles (both reset and import use these) */
 .modal-overlay {
     position: fixed;
     top: 0;

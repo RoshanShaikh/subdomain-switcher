@@ -4,20 +4,17 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Subdomain Switcher</title>
-        <!-- Changed title -->
         <link
             href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
             rel="stylesheet"
         />
         <link rel="stylesheet" href="popup.css" />
-        <!-- Link to external CSS file -->
     </head>
     <body>
         <div class="container">
             <div id="mainView">
                 <div class="header">
                     Subdomain Switcher
-                    <!-- Changed header text -->
                     <div
                         id="optionsIcon"
                         class="options-icon"
@@ -48,14 +45,12 @@
                 <div id="aliases-container" class="mb-5">
                     <!-- Aliases will be loaded here as grouped buttons by JavaScript -->
                 </div>
-
-                <!-- Removed openConfigBtn -->
             </div>
 
             <div id="configView" style="display: none">
                 <div class="header">
                     Configure Aliases
-                    <!-- Changed header text -->
+                    <!-- Changed from "Configure Subdomain Aliases" -->
                     <div
                         id="backIcon"
                         class="options-icon"
@@ -69,6 +64,39 @@
                                 d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
                             />
                         </svg>
+                    </div>
+                    <div id="actionsIcon" class="options-icon" title="Actions">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                            />
+                        </svg>
+                    </div>
+                    <div
+                        id="configActionsDropdown"
+                        class="config-actions-dropdown hidden"
+                    >
+                        <button id="exportAliasesBtn" class="dropdown-btn">
+                            Export Aliases
+                        </button>
+                        <input
+                            type="file"
+                            id="importAliasesFile"
+                            accept=".json"
+                            class="hidden"
+                        />
+                        <button id="importAliasesBtn" class="dropdown-btn">
+                            Import Aliases
+                        </button>
+                        <button
+                            id="resetAliasesBtn"
+                            class="dropdown-btn reset-btn-dropdown"
+                        >
+                            Reset All Aliases
+                        </button>
                     </div>
                 </div>
 
@@ -159,17 +187,12 @@
                 <button id="addAliasBtn" class="action-btn add-btn">
                     Add Alias
                 </button>
-                <button id="resetAliasesBtn" class="action-btn reset-btn mt-2">
-                    Reset All Aliases
-                </button>
-
-                <!-- Removed backBtn as a separate button, replaced by backIcon -->
             </div>
 
             <div id="messageBox" class="message-box"></div>
         </div>
 
-        <!-- Confirmation Modal -->
+        <!-- Confirmation Modal for Reset -->
         <div id="resetConfirmationModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-title">Confirm Reset</div>
@@ -186,6 +209,31 @@
                     </button>
                     <button
                         id="cancelResetBtn"
+                        class="modal-btn modal-btn-cancel"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal for Import -->
+        <div id="importConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Confirm Import</div>
+                <div class="modal-message">
+                    Importing aliases will **overwrite** all your current saved
+                    aliases. Are you sure you want to proceed?
+                </div>
+                <div class="modal-actions">
+                    <button
+                        id="confirmImportBtn"
+                        class="modal-btn modal-btn-confirm"
+                    >
+                        Yes, Overwrite
+                    </button>
+                    <button
+                        id="cancelImportBtn"
                         class="modal-btn modal-btn-cancel"
                     >
                         Cancel
