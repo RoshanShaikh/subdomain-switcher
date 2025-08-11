@@ -1,0 +1,557 @@
+body {
+    width: 400px;
+    padding: 15px;
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+    position: relative;
+    min-height: 200px;
+}
+
+.container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+    position: relative;
+}
+
+.options-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease-in-out;
+    z-index: 20;
+    /* Ensure icon is above dropdown when dropdown is open */
+}
+
+.options-icon:hover {
+    background-color: #e2e8f0;
+}
+
+.options-icon svg {
+    fill: #64748b;
+}
+
+/* Specific positioning for back and actions icon in config view header */
+#configView .header #backIcon {
+    left: 5px;
+    /* Position back icon to the left */
+    right: auto;
+}
+
+/* Positioning for the new Add Alias Icon */
+#configView .header #addAliasIcon {
+    right: 35px;
+    /* Position to the left of actionsIcon */
+    left: auto;
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+    /* Specific fill color for the plus icon */
+}
+
+#configView .header #addAliasIcon svg {
+    fill: #10b981;
+    /* Green fill color for the plus icon */
+}
+
+
+#configView .header #actionsIcon {
+    right: 5px;
+    /* Position actions icon to the right */
+    left: auto;
+    /* Added styles for actionsIcon to make it smaller as requested */
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+}
+
+
+/* Styles for the new actions dropdown menu */
+.config-actions-dropdown {
+    position: absolute;
+    top: 40px;
+    /* Position below the header */
+    right: 0px;
+    /* Align to the right of the header */
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 15;
+    /* Above other content but below header icons */
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    /* Ensure enough width for buttons */
+}
+
+.config-actions-dropdown.hidden {
+    display: none;
+}
+
+.config-actions-dropdown .dropdown-btn {
+    background-color: #f0f4f8;
+    /* Light gray background */
+    color: #4a5568;
+    /* Darker text */
+    padding: 6px 10px;
+    /* Reduced padding to make buttons smaller */
+    font-size: 0.875rem;
+    /* Slightly smaller font size */
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    text-align: left;
+    margin-bottom: 4px;
+    /* Space between buttons */
+}
+
+.config-actions-dropdown .dropdown-btn:last-child {
+    margin-bottom: 0;
+}
+
+.config-actions-dropdown .dropdown-btn:hover {
+    background-color: #e2e8f0;
+    /* Slightly darker on hover */
+    color: #2d3748;
+}
+
+.config-actions-dropdown .reset-btn-dropdown {
+    color: #ef4444;
+    /* Specific red color for reset button text */
+}
+
+.config-actions-dropdown .reset-btn-dropdown:hover {
+    background-color: #fee2e2;
+    /* Light red hover for reset */
+}
+
+
+/* Styles for grouped aliases in main view */
+.domain-group {
+    margin-bottom: 15px;
+}
+
+/* Styles for the header within domain groups */
+.domain-group-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4a5568;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.domain-group-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+#aliases-container {
+    /* No direct grid on this container anymore, as grouping divs will handle it */
+    margin-bottom: 10px;
+}
+
+.alias-button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    cursor: pointer;
+    width: auto;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alias-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.alias-button:active {
+    background-color: #1d4ed8;
+    transform: translateY(0);
+}
+
+.message-box {
+    background-color: #fff3cd;
+    color: #664d03;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 15px;
+    display: none;
+    border: 1px solid #ffecb5;
+}
+
+#currentUrlDisplayTable {
+    margin-bottom: 15px;
+    /* Default styling for the table container */
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Ensures rounded corners are applied to content */
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+#currentUrlDisplayTable table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#currentUrlDisplayTable td {
+    /* Only target td directly now */
+    padding: 10px;
+    text-align: center;
+    /* Centered text as requested */
+    font-size: 1rem;
+    /* Matched button font size */
+    font-weight: 600;
+    /* Matched button font weight */
+    color: #555;
+    /* Default text color for cells */
+    word-wrap: break-word;
+}
+
+/* Removed #currentUrlDisplayTable th rules */
+
+
+/* General button styles (for Add, Reset, Cancel Edit) */
+.action-btn {
+    background-color: #60a5fa;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    margin-top: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+    background-color: #3b82f6;
+}
+
+/* Specific overrides for color */
+.add-btn {
+    background-color: #10b981;
+}
+
+.add-btn:hover {
+    background-color: #059669;
+}
+
+/* Removed .reset-btn specific styles as it's now a dropdown-btn */
+
+
+/* Styles for Configuration View */
+.config-view {
+    padding-top: 15px;
+}
+
+.alias-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.alias-list-item:last-child {
+    border-bottom: none;
+}
+
+.alias-list-info {
+    font-size: 0.95rem;
+    color: #34495e;
+    flex-grow: 1;
+    word-break: break-all;
+    padding-right: 10px;
+}
+
+/* Icon button base styles */
+.icon-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    padding: 3px;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.icon-btn:hover {
+    background-color: #e0f2fe;
+    /* Light blue hover for all icon buttons */
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Specific icon button styles */
+.edit-icon-btn {
+    margin-right: 8px;
+}
+
+.edit-icon-btn svg {
+    fill: #3b82f6;
+    /* Blue fill for edit icon */
+}
+
+.copy-btn {
+    /* NEW: Styles for the copy button */
+    margin-right: 8px;
+}
+
+.copy-btn svg {
+    fill: #64748b;
+    /* Gray fill for copy icon */
+}
+
+.delete-btn svg {
+    fill: #EF4444;
+    /* Red fill for delete icon */
+}
+
+
+.input-group {
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.875rem;
+    color: #4a5568;
+    margin-bottom: 5px;
+}
+
+/* General text input styling for Alias Name and Domain */
+.text-input,
+.custom-hex-input {
+    /* Apply to both regular text inputs and the hex input */
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+}
+
+.custom-hex-input {
+    text-transform: uppercase;
+}
+
+
+/* Custom Color Picker Styles */
+.color-swatch-preview {
+    /* New class for the small color display */
+    width: 32px;
+    height: 32px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.color-swatch-preview:hover {
+    border-color: #9cd5f5;
+}
+
+
+.color-picker-dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: 8px;
+    display: none;
+    left: 0;
+    right: 0;
+    margin-top: 5px;
+}
+
+.color-picker-reset {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.color-picker-reset:hover {
+    background-color: #f0f4f8;
+    border-radius: 4px;
+}
+
+.color-picker-reset-icon {
+    width: 16px;
+    height: 16px;
+    fill: #4a5568;
+    margin-right: 8px;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 28px);
+    gap: 4px;
+    padding: 0 5px 5px 5px;
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+
+.color-swatch:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px #a7f3d0;
+}
+
+.color-swatch.selected {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.checkmark {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    fill: white;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+.input-error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Confirmation Modal Styles (both reset and import use these) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    display: none;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 280px;
+    width: 90%;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-out;
+}
+
+.modal-content.show {
+    transform: scale(1);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.modal-message {
+    font-size: 1rem;
+    color: #34495e;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    flex-grow: 1;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.modal-btn-confirm {
+    background-color: #ef4444;
+    color: white;
+}
+
+.modal-btn-confirm:hover {
+    background-color: #dc2626;
+}
+
+.modal-btn-cancel {
+    background-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.modal-btn-cancel:hover {
+    background-color: #cbd5e0;
+}
