@@ -229,7 +229,16 @@ export function renderMainViewAliases(
                             // Replace only the hostname part with the new target hostname
                             const newUrl = `${url.protocol}//${targetHostname}${url.pathname}${url.search}${url.hash}`;
 
-                            await chrome.tabs.create({ url: newUrl });
+                            const [currentTab] = await chrome.tabs.query({
+                                active: true,
+                                lastFocusedWindow: true,
+                            });
+                            let currentTabIndex = currentTab.index;
+                            let newTabIndex = currentTabIndex + 1;
+
+                            console.log(currentTabIndex, newTabIndex);
+
+                            await chrome.tabs.create({ url: newUrl, index:  newTabIndex});
                             showMessage(
                                 messageBox,
                                 `Opened in new tab: ${newUrl}`,
