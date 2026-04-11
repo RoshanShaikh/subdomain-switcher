@@ -1,212 +1,321 @@
 /**
  * Options page logic for the Subdomain Switcher.
- * Manages alias configuration (add, edit, delete, import, export, reset).
+ * Schema: domainGroups = [{ domain: string, aliases: [{ color, name, subdomain }] }]
+ *
+ * Views:
+ *  - configView    : accordion list of all domains (home)
+ *  - addAliasView  : alias editor (add / edit / duplicate)
+ *  - addDomainView : new domain form
  */
 
-import { loadAliases, saveAliases } from "./storage.js";
+import { loadDomainGroups, saveDomainGroups } from "./storage.js";
 import {
     showMessage,
     showInputError,
     clearInputErrors,
     cleanHostname,
-    isSameOrSubdomain,
 } from "./utils.js";
 import {
     setSelectedColor as domSetSelectedColor,
     renderColorGrid,
-    renderConfigViewAliases,
+    renderAccordionDomains,
     resetAliasForm as domResetAliasForm,
 } from "./dom.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- DOM Element References ---
-    const configView = document.getElementById("configView");
-    const configAliasesContainer = document.getElementById(
-        "config-aliases-container",
-    );
-    const addAliasIcon = document.getElementById("addAliasIcon");
+
+    // ── DOM refs ─────────────────────────────────────────────────────────────
+
+    const configView    = document.getElementById("configView");
+    const addAliasView  = document.getElementById("addAliasView");
+    const addDomainView = document.getElementById("addDomainView");
+
+    // Config view
+    const configDomainsContainer = document.getElementById("config-domains-container");
+    const addDomainIcon          = document.getElementById("addDomainIcon");
+    const actionsIcon            = document.getElementById("actionsIcon");
+    const configActionsDropdown  = document.getElementById("configActionsDropdown");
+    const exportAliasesBtn       = document.getElementById("exportAliasesBtn");
+    const importAliasesBtn       = document.getElementById("importAliasesBtn");
+    const importAliasesFile      = document.getElementById("importAliasesFile");
+    const resetAliasesBtn        = document.getElementById("resetAliasesBtn");
+
+    // Alias editor view
+    const editorTitle              = document.getElementById("editorTitle");
+    const backToAliasListBtn       = document.getElementById("backToAliasListBtn");
+    const newAliasNameInput        = document.getElementById("newAliasName");
+    const newAliasSubdomainPrefix  = document.getElementById("newAliasSubdomainPrefix");
+    const subdomainSuffix          = document.getElementById("subdomainSuffix");
+    const newAliasColorDisplay     = document.getElementById("newAliasColorDisplay");
+    const newAliasColorHidden    = document.getElementById("newAliasColorHidden");
+    const customHexInput         = document.getElementById("customHexInput");
+    const colorPickerDropdown    = document.getElementById("colorPickerDropdown");
+    const colorGrid              = document.getElementById("colorGrid");
+    const colorPickerResetBtn    = document.getElementById("colorPickerResetBtn");
+    const addAliasBtn            = document.getElementById("addAliasBtn");
+    const cancelEditBtn          = document.getElementById("cancelEditBtn");
+
+    // Add domain view
+    const backFromAddDomainBtn = document.getElementById("backFromAddDomainBtn");
+    const newDomainInput       = document.getElementById("newDomainInput");
+    const createDomainBtn      = document.getElementById("createDomainBtn");
+
+    // Message box & modals
     const messageBox = document.getElementById("messageBox");
 
-    // Add/Edit Alias View Elements
-    const addAliasView = document.getElementById("addAliasView");
-    const backToAddAliasBtn = document.getElementById("backToAddAliasBtn");
+    const resetConfirmationModal = document.getElementById("resetConfirmationModal");
+    const confirmResetBtn        = document.getElementById("confirmResetBtn");
+    const cancelResetBtn         = document.getElementById("cancelResetBtn");
 
-    const newAliasNameInput = document.getElementById("newAliasName");
-    const newAliasSubdomainInput = document.getElementById("newAliasSubdomain");
-    const newAliasDomainInput = document.getElementById("newAliasDomain");
+    const importConfirmationModal = document.getElementById("importConfirmationModal");
+    const confirmImportBtn        = document.getElementById("confirmImportBtn");
+    const cancelImportBtn         = document.getElementById("cancelImportBtn");
 
-    const newAliasColorDisplay = document.getElementById(
-        "newAliasColorDisplay",
-    );
-    const newAliasColorHidden = document.getElementById("newAliasColorHidden");
-    const customHexInput = document.getElementById("customHexInput");
-    const colorPickerDropdown = document.getElementById("colorPickerDropdown");
-    const colorGrid = document.getElementById("colorGrid");
-    const colorPickerResetBtn = document.getElementById("colorPickerResetBtn");
+    const deleteDomainModal      = document.getElementById("deleteDomainModal");
+    const domainToDeleteName     = document.getElementById("domainToDeleteName");
+    const confirmDeleteDomainBtn = document.getElementById("confirmDeleteDomainBtn");
+    const cancelDeleteDomainBtn  = document.getElementById("cancelDeleteDomainBtn");
 
-    const addAliasBtn = document.getElementById("addAliasBtn");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const deleteAliasModal       = document.getElementById("deleteAliasModal");
+    const aliasToDeleteName      = document.getElementById("aliasToDeleteName");
+    const confirmDeleteAliasBtn  = document.getElementById("confirmDeleteAliasBtn");
+    const cancelDeleteAliasBtn   = document.getElementById("cancelDeleteAliasBtn");
 
-    // Action Menu Elements
-    const actionsIcon = document.getElementById("actionsIcon");
-    const configActionsDropdown = document.getElementById(
-        "configActionsDropdown",
-    );
-    const exportAliasesBtn = document.getElementById("exportAliasesBtn");
-    const importAliasesBtn = document.getElementById("importAliasesBtn");
-    const importAliasesFile = document.getElementById("importAliasesFile");
-    const resetAliasesBtn = document.getElementById("resetAliasesBtn");
+    // ── State ─────────────────────────────────────────────────────────────────
 
-    // Modals
-    const resetConfirmationModal = document.getElementById(
-        "resetConfirmationModal",
-    );
-    const confirmResetBtn = document.getElementById("confirmResetBtn");
-    const cancelResetBtn = document.getElementById("cancelResetBtn");
+    let domainGroups          = [];
+    let openAccordionIndices  = new Set();  // which domain accordions are expanded
+    let activeDomainIndex     = -1;         // domain being edited into
+    let editingAliasIndex     = -1;         // alias being edited (-1 = new)
+    let editingDomainIndex    = -1;         // domain being renamed (-1 = creating new)
+    let domainIndexToDelete   = -1;
+    let aliasIndexToDelete    = -1;
+    let groupIndexForAlias    = -1;         // which group the alias-to-delete belongs to
+    let fileToImport          = null;
 
-    const importConfirmationModal = document.getElementById(
-        "importConfirmationModal",
-    );
-    const confirmImportBtn = document.getElementById("confirmImportBtn");
-    const cancelImportBtn = document.getElementById("cancelImportBtn");
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    const deleteConfirmationModal = document.getElementById(
-        "deleteConfirmationModal",
-    );
-    const aliasToDeleteName = document.getElementById("aliasToDeleteName");
-    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const closeActionsDropdown = () => configActionsDropdown.classList.add("hidden");
 
-    let fileToImport = null;
-    let aliasIndexToDelete = -1;
+    const setSelectedColor = (color, fromHexInput = false) =>
+        domSetSelectedColor(color, newAliasColorHidden, newAliasColorDisplay, customHexInput, fromHexInput);
 
-    // --- Application State ---
-    let domainAliases = [];
-    let editingAliasIndex = -1;
-
-    // --- Callbacks/Helper Functions ---
-
-    const closeActionsDropdown = () => {
-        if (!configActionsDropdown.classList.contains("hidden")) {
-            configActionsDropdown.classList.add("hidden");
-        }
-    };
-
-    const setSelectedColor = (color, fromHexInput = false) => {
-        domSetSelectedColor(
-            color,
-            newAliasColorHidden,
-            newAliasColorDisplay,
-            customHexInput,
-            fromHexInput,
-        );
-    };
-
-    const resetAliasForm = () => {
+    const resetAliasForm = () =>
         domResetAliasForm(
             newAliasNameInput,
-            newAliasSubdomainInput,
-            newAliasDomainInput,
+            newAliasSubdomainPrefix,
             setSelectedColor,
             addAliasBtn,
-            (index) => {
-                editingAliasIndex = index;
-            },
+            (idx) => { editingAliasIndex = idx; },
             cancelEditBtn,
         );
-    };
 
-    const renderConfigViewAliasesWrapper = () => {
-        renderConfigViewAliases(
-            configAliasesContainer,
-            domainAliases,
-            (index, aliasData) => {
-                editingAliasIndex = index;
-                newAliasNameInput.value = aliasData.name;
-                newAliasSubdomainInput.value = aliasData.subdomain || "";
-                newAliasDomainInput.value = aliasData.domain || "";
-                setSelectedColor(aliasData.color || "#3b82f6");
-                addAliasBtn.textContent =
-                    index !== -1 ? "Update Alias" : "Add Alias";
-                addAliasBtn.classList.remove(
-                    "bg-green-500",
-                    "hover:bg-green-700",
-                    "bg-yellow-500",
-                    "hover:bg-yellow-700",
-                );
-                addAliasBtn.classList.add(
-                    index !== -1 ? "bg-yellow-500" : "bg-green-500",
-                    index !== -1 ? "hover:bg-yellow-700" : "hover:bg-green-700",
-                );
-                if (index !== -1) {
-                    cancelEditBtn.style.display = "block";
+    const redrawAccordion = () => {
+        renderAccordionDomains(
+            configDomainsContainer,
+            domainGroups,
+            openAccordionIndices,
+            (idx) => {
+                if (openAccordionIndices.has(idx)) {
+                    openAccordionIndices.delete(idx);
                 } else {
-                    cancelEditBtn.style.display = "none";
+                    openAccordionIndices.add(idx);
                 }
-                clearInputErrors();
-                showView("addAlias");
+                redrawAccordion();
             },
-            messageBox,
-            undefined, // renderMainViewAliasesCallback - not needed on options page
-            undefined, // currentUrlDisplay - not needed on options page
-            undefined, // currentUrlDisplayTable - not needed on options page
-            deleteConfirmationModal,
-            aliasToDeleteName,
-            (index) => {
-                aliasIndexToDelete = index;
-            },
+            (groupIdx) => openAliasEditor(groupIdx, -1, { name: "", subdomain: "", color: "#3b82f6" }, "add"),
+            (groupIdx, aliasIdx, aliasData, mode) => openAliasEditor(groupIdx, aliasIdx, aliasData, mode),
+            (groupIdx, aliasIdx) => promptDeleteAlias(groupIdx, aliasIdx),
+            (groupIdx) => openDomainEditor(groupIdx),
+            (groupIdx) => promptDeleteDomain(groupIdx),
         );
     };
 
-    /**
-     * Manages which view (config, addAlias) is currently displayed.
-     * @param {string} viewName - The name of the view to show ('config' or 'addAlias').
-     */
-    const showView = (viewName) => {
-        configView.style.display = "none";
-        addAliasView.style.display = "none";
+    // ── View navigation ───────────────────────────────────────────────────────
 
-        if (viewName === "config") {
-            configView.style.display = "block";
-            renderConfigViewAliasesWrapper();
-            resetAliasForm();
-        } else if (viewName === "addAlias") {
-            addAliasView.style.display = "block";
-        }
+    const showView = (name) => {
+        configView.style.display    = "none";
+        addAliasView.style.display  = "none";
+        addDomainView.style.display = "none";
         closeActionsDropdown();
+
+        if (name === "config") {
+            configView.style.display = "block";
+            redrawAccordion();
+        } else if (name === "addAlias") {
+            addAliasView.style.display = "block";
+        } else if (name === "addDomain") {
+            addDomainView.style.display = "block";
+            clearInputErrors();
+            if (editingDomainIndex !== -1) {
+                // Edit mode — pre-fill existing domain
+                newDomainInput.value = domainGroups[editingDomainIndex].domain;
+                document.querySelector("#addDomainView .header-title").textContent = "Edit Domain";
+                createDomainBtn.textContent = "Save Changes";
+            } else {
+                // Create mode
+                newDomainInput.value = "";
+                document.querySelector("#addDomainView .header-title").textContent = "Add Domain";
+                createDomainBtn.textContent = "Create Domain";
+            }
+        }
     };
 
-    // --- Initialization ---
-    domainAliases = await loadAliases(messageBox);
+    const openAliasEditor = (groupIdx, aliasIdx, aliasData, mode) => {
+        activeDomainIndex = groupIdx;
+        editingAliasIndex = aliasIdx;
+
+        const domain = domainGroups[groupIdx].domain;
+        // Update the suffix label
+        subdomainSuffix.textContent = "." + domain;
+
+        newAliasNameInput.value = aliasData.name || "";
+
+        // alias.subdomain is stored as prefix only — use it directly
+        newAliasSubdomainPrefix.value = aliasData.subdomain || "";
+
+        setSelectedColor(aliasData.color || "#3b82f6");
+
+        if (mode === "edit") {
+            editorTitle.textContent     = "Edit Alias";
+            addAliasBtn.textContent     = "Update Alias";
+            addAliasBtn.classList.remove("bg-green-500", "hover:bg-green-700");
+            addAliasBtn.classList.add("bg-yellow-500", "hover:bg-yellow-700");
+            cancelEditBtn.style.display = "block";
+        } else {
+            editorTitle.textContent     = mode === "duplicate" ? "Duplicate Alias" : "Add New Alias";
+            addAliasBtn.textContent     = "Add Alias";
+            addAliasBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-700");
+            addAliasBtn.classList.add("bg-green-500", "hover:bg-green-700");
+            cancelEditBtn.style.display = "none";
+        }
+        clearInputErrors();
+        showView("addAlias");
+    };
+
+    // ── Delete prompts ────────────────────────────────────────────────────────
+
+    const openDomainEditor = (idx) => {
+        editingDomainIndex = idx;
+        showView("addDomain");
+    };
+
+    const promptDeleteDomain = (idx) => {
+        domainIndexToDelete = idx;
+        domainToDeleteName.textContent = domainGroups[idx].domain;
+        deleteDomainModal.style.display = "flex";
+        deleteDomainModal.querySelector(".modal-content").classList.add("show");
+    };
+
+    const promptDeleteAlias = (groupIdx, aliasIdx) => {
+        groupIndexForAlias  = groupIdx;
+        aliasIndexToDelete  = aliasIdx;
+        const alias = domainGroups[groupIdx].aliases[aliasIdx];
+        aliasToDeleteName.textContent = alias.name;
+        deleteAliasModal.style.display = "flex";
+        deleteAliasModal.querySelector(".modal-content").classList.add("show");
+    };
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+
+    domainGroups = await loadDomainGroups(messageBox);
     showView("config");
     renderColorGrid(colorGrid, setSelectedColor, newAliasColorHidden);
 
-    // Listen for changes in storage (sync across contexts)
     chrome.storage.sync.onChanged.addListener(async (changes) => {
-        if (changes.domainAliases) {
-            domainAliases = changes.domainAliases.newValue || [];
-            if (configView.style.display === "block") {
-                renderConfigViewAliasesWrapper();
-            }
+        if (changes.domainGroups) {
+            domainGroups = changes.domainGroups.newValue || [];
+            if (configView.style.display === "block") redrawAccordion();
         }
     });
 
-    // --- Event Listeners ---
+    // ── Config view events ────────────────────────────────────────────────────
 
-    // Switch to addAliasView from config view
-    addAliasIcon.addEventListener("click", () => {
-        resetAliasForm();
-        showView("addAlias");
+    addDomainIcon.addEventListener("click", () => showView("addDomain"));
+
+    actionsIcon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        configActionsDropdown.classList.toggle("hidden");
     });
 
-    // Switch back to config view from addAliasView
-    backToAddAliasBtn.addEventListener("click", () => {
+    document.addEventListener("click", (e) => {
+        if (
+            !configActionsDropdown.classList.contains("hidden") &&
+            !actionsIcon.contains(e.target) &&
+            !configActionsDropdown.contains(e.target)
+        ) closeActionsDropdown();
+
+        if (
+            colorPickerDropdown.style.display === "block" &&
+            !colorPickerDropdown.contains(e.target) &&
+            !newAliasColorDisplay.contains(e.target) &&
+            !customHexInput.contains(e.target)
+        ) colorPickerDropdown.style.display = "none";
+    });
+
+    // ── Add Domain view events ────────────────────────────────────────────────
+
+    backFromAddDomainBtn.addEventListener("click", () => {
+        editingDomainIndex = -1;
         showView("config");
     });
 
-    // Toggle color picker dropdown
-    newAliasColorDisplay.addEventListener("click", (event) => {
-        event.stopPropagation();
+    createDomainBtn.addEventListener("click", async () => {
+        clearInputErrors();
+        const raw = newDomainInput.value.trim();
+        if (!raw) {
+            showInputError(newDomainInput, "Domain is required.");
+            return;
+        }
+        let domain;
+        try {
+            const url = new URL(`http://${raw}`);
+            domain = cleanHostname(url.hostname);
+            if (domain !== cleanHostname(raw)) throw new Error();
+        } catch {
+            showInputError(newDomainInput, "Please enter a valid hostname (e.g., app.example.com).");
+            return;
+        }
+
+        if (editingDomainIndex !== -1) {
+            // Edit mode — check for duplicate only against other groups
+            if (domainGroups.some((g, i) => i !== editingDomainIndex && cleanHostname(g.domain) === domain)) {
+                showInputError(newDomainInput, "This domain already exists.");
+                return;
+            }
+            domainGroups[editingDomainIndex].domain = domain;
+            await saveDomainGroups(domainGroups, messageBox);
+            showMessage(messageBox, `Domain updated to "${domain}".`, "success");
+            openAccordionIndices.add(editingDomainIndex);
+            editingDomainIndex = -1;
+        } else {
+            // Create mode
+            if (domainGroups.some((g) => cleanHostname(g.domain) === domain)) {
+                showInputError(newDomainInput, "This domain already exists.");
+                return;
+            }
+            domainGroups.push({ domain, aliases: [] });
+            await saveDomainGroups(domainGroups, messageBox);
+            showMessage(messageBox, `Domain "${domain}" created.`, "success");
+            openAccordionIndices.add(domainGroups.length - 1);
+        }
+        showView("config");
+    });
+
+    // ── Alias editor events ───────────────────────────────────────────────────
+
+    backToAliasListBtn.addEventListener("click", () => {
+        resetAliasForm();
+        showView("config");
+    });
+
+    cancelEditBtn.addEventListener("click", () => {
+        resetAliasForm();
+        showView("config");
+    });
+
+    newAliasColorDisplay.addEventListener("click", (e) => {
+        e.stopPropagation();
         colorPickerDropdown.style.display =
             colorPickerDropdown.style.display === "block" ? "none" : "block";
         if (colorPickerDropdown.style.display === "block") {
@@ -215,75 +324,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Handle "Reset" click in color picker
     colorPickerResetBtn.addEventListener("click", () => {
         setSelectedColor("#3b82f6");
         colorPickerDropdown.style.display = "none";
     });
 
-    // Live update color when typing in hex input
     customHexInput.addEventListener("input", () => {
         const hex = customHexInput.value.trim();
-        const partialHexRegex = /^#([A-Fa-f0-9]{0,6})$/i;
-
-        if (partialHexRegex.test(hex)) {
+        if (/^#([A-Fa-f0-9]{0,6})$/i.test(hex)) {
             newAliasColorDisplay.style.backgroundColor = hex;
             newAliasColorHidden.value = hex;
-            const fullHexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i;
-            if (fullHexRegex.test(hex)) {
-                clearInputErrors();
-            }
+            if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(hex)) clearInputErrors();
         }
     });
 
-    // Handle blur event for final validation on hex input
     customHexInput.addEventListener("blur", () => {
         const hex = customHexInput.value.trim();
-        const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i;
-
-        if (!hexRegex.test(hex) && hex.length > 0) {
-            showInputError(
-                customHexInput,
-                "Invalid hex code. Using default color.",
-            );
-            setSelectedColor("#3b82f6");
-        } else if (hex.length === 0) {
+        if (hex.length === 0) {
             setSelectedColor("#3b82f6");
             clearInputErrors();
+        } else if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(hex)) {
+            showInputError(customHexInput, "Invalid hex code. Using default color.");
+            setSelectedColor("#3b82f6");
         } else {
             setSelectedColor(hex);
         }
     });
 
-    // Close color picker and actions dropdown when clicking outside
-    document.addEventListener("click", (event) => {
-        if (
-            colorPickerDropdown.style.display === "block" &&
-            !colorPickerDropdown.contains(event.target) &&
-            !newAliasColorDisplay.contains(event.target) &&
-            !customHexInput.contains(event.target)
-        ) {
-            colorPickerDropdown.style.display = "none";
-        }
-
-        if (
-            !configActionsDropdown.classList.contains("hidden") &&
-            !actionsIcon.contains(event.target) &&
-            !configActionsDropdown.contains(event.target)
-        ) {
-            closeActionsDropdown();
-        }
-    });
-
-    // Add/Update Alias
     addAliasBtn.addEventListener("click", async () => {
         clearInputErrors();
-
-        const name = newAliasNameInput.value.trim();
-        const subdomain = newAliasSubdomainInput.value.trim();
-        const domain = newAliasDomainInput.value.trim();
-        const color = newAliasColorHidden.value;
-
+        const name   = newAliasNameInput.value.trim();
+        const prefix = newAliasSubdomainPrefix.value.trim();
+        const color  = newAliasColorHidden.value;
+        const group  = domainGroups[activeDomainIndex];
         let hasError = false;
 
         if (!name) {
@@ -291,192 +364,135 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        if (!subdomain) {
-            showInputError(
-                newAliasSubdomainInput,
-                "Subdomain (full hostname) is required (e.g., app.example.com).",
-            );
+        if (!prefix) {
+            showInputError(newAliasSubdomainPrefix, "Subdomain prefix is required.");
             hasError = true;
-        } else {
-            try {
-                const testUrl = new URL(`http://${subdomain}`);
-                if (
-                    cleanHostname(testUrl.hostname) !== cleanHostname(subdomain)
-                ) {
-                    showInputError(
-                        newAliasSubdomainInput,
-                        "Please enter a valid hostname format (e.g., app.example.com).",
-                    );
-                    hasError = true;
-                }
-            } catch (e) {
-                showInputError(
-                    newAliasSubdomainInput,
-                    "Please enter a valid hostname format (e.g., app.example.com).",
-                );
-                hasError = true;
-            }
-        }
-
-        if (!domain) {
-            showInputError(
-                newAliasDomainInput,
-                "Domain is required (e.g., example.com).",
-            );
-            hasError = true;
-        } else {
-            try {
-                const testUrl = new URL(`http://${domain}`);
-                if (cleanHostname(testUrl.hostname) !== cleanHostname(domain)) {
-                    showInputError(
-                        newAliasDomainInput,
-                        "Please enter a valid domain format (e.g., example.com).",
-                    );
-                    hasError = true;
-                }
-            } catch (e) {
-                showInputError(
-                    newAliasDomainInput,
-                    "Please enter a valid domain format (e.g., example.com).",
-                );
-                hasError = true;
-            }
-        }
-
-        if (!hasError && subdomain && domain) {
-            const normalizedSubdomain = cleanHostname(subdomain);
-            const normalizedDomain = cleanHostname(domain);
-
-            if (normalizedSubdomain === normalizedDomain) {
-                showInputError(
-                    newAliasDomainInput,
-                    "Domain cannot be same as subdomain.",
-                );
-                hasError = true;
-            } else if (
-                !isSameOrSubdomain(normalizedSubdomain, normalizedDomain)
-            ) {
-                showInputError(
-                    newAliasSubdomainInput,
-                    `Subdomain '${subdomain}' must belong to the '${domain}' domain.`,
-                );
-                hasError = true;
-            }
-        }
-
-        const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i;
-        if (!hexRegex.test(color)) {
-            showInputError(
-                customHexInput,
-                "Please provide a valid hex color code (e.g., #RRGGBB).",
-            );
+        } else if (!/^[a-zA-Z0-9-]+$/.test(prefix)) {
+            showInputError(newAliasSubdomainPrefix, "Only letters, numbers, and hyphens allowed.");
             hasError = true;
         }
 
-        if (
-            domainAliases.some(
-                (alias, i) =>
-                    i !== editingAliasIndex &&
-                    alias.name.toLowerCase() === name.toLowerCase(),
-            )
-        ) {
+        if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(color)) {
+            showInputError(customHexInput, "Please provide a valid hex color code.");
+            hasError = true;
+        }
+
+        const aliases = group.aliases || [];
+
+        if (aliases.some((a, i) => i !== editingAliasIndex && a.name.toLowerCase() === name.toLowerCase())) {
             showInputError(newAliasNameInput, "Alias name already exists.");
             hasError = true;
         }
 
-        const normalizedNewSubdomain = cleanHostname(subdomain);
-        if (
-            domainAliases.some((alias, i) => {
-                return (
-                    i !== editingAliasIndex &&
-                    cleanHostname(alias.subdomain) === normalizedNewSubdomain
-                );
-            })
-        ) {
-            showInputError(
-                newAliasSubdomainInput,
-                "This Subdomain (full hostname) already exists.",
-            );
+        // Duplicate check: compare prefixes directly (domain is shared, so prefix uniqueness is enough)
+        if (!hasError && aliases.some((a, i) => i !== editingAliasIndex && a.subdomain.toLowerCase() === prefix.toLowerCase())) {
+            showInputError(newAliasSubdomainPrefix, "This subdomain already exists.");
             hasError = true;
         }
 
-        if (hasError) {
-            return;
-        }
+        if (hasError) return;
 
+        // Store prefix only — full hostname is composed at runtime as prefix + "." + group.domain
         if (editingAliasIndex !== -1) {
-            domainAliases[editingAliasIndex] = {
-                name,
-                subdomain,
-                domain,
-                color,
-            };
+            group.aliases[editingAliasIndex] = { name, subdomain: prefix, color };
             showMessage(messageBox, "Alias updated successfully!", "success");
         } else {
-            const newAlias = { name, subdomain, domain, color };
-            domainAliases.push(newAlias);
-            showMessage(messageBox, "New alias added successfully!", "success");
+            group.aliases.push({ name, subdomain: prefix, color });
+            showMessage(messageBox, "Alias added successfully!", "success");
         }
 
-        await saveAliases(domainAliases, messageBox);
-        showView("config");
+        await saveDomainGroups(domainGroups, messageBox);
         resetAliasForm();
-    });
-
-    // Cancel Edit button
-    cancelEditBtn.addEventListener("click", () => {
-        resetAliasForm();
+        openAccordionIndices.add(activeDomainIndex);
         showView("config");
     });
 
-    // --- Reset Aliases Functionality ---
+    // ── Delete domain modal ───────────────────────────────────────────────────
+
+    confirmDeleteDomainBtn.addEventListener("click", async () => {
+        deleteDomainModal.style.display = "none";
+        if (domainIndexToDelete !== -1) {
+            openAccordionIndices.delete(domainIndexToDelete);
+            // Shift down any open indices above the deleted one
+            const shifted = new Set();
+            openAccordionIndices.forEach((i) => shifted.add(i > domainIndexToDelete ? i - 1 : i));
+            openAccordionIndices = shifted;
+
+            domainGroups.splice(domainIndexToDelete, 1);
+            await saveDomainGroups(domainGroups, messageBox);
+            showMessage(messageBox, "Domain deleted.", "success");
+            domainIndexToDelete = -1;
+            showView("config");
+        }
+    });
+
+    cancelDeleteDomainBtn.addEventListener("click", () => {
+        deleteDomainModal.style.display = "none";
+        domainIndexToDelete = -1;
+    });
+
+    // ── Delete alias modal ────────────────────────────────────────────────────
+
+    confirmDeleteAliasBtn.addEventListener("click", async () => {
+        deleteAliasModal.style.display = "none";
+        if (aliasIndexToDelete !== -1 && groupIndexForAlias !== -1) {
+            domainGroups[groupIndexForAlias].aliases.splice(aliasIndexToDelete, 1);
+            await saveDomainGroups(domainGroups, messageBox);
+            showMessage(messageBox, "Alias deleted.", "success");
+            aliasIndexToDelete = -1;
+            groupIndexForAlias = -1;
+            showView("config");
+        }
+    });
+
+    cancelDeleteAliasBtn.addEventListener("click", () => {
+        deleteAliasModal.style.display = "none";
+        aliasIndexToDelete = -1;
+        groupIndexForAlias = -1;
+    });
+
+    // ── Reset modal ───────────────────────────────────────────────────────────
+
     resetAliasesBtn.addEventListener("click", () => {
         closeActionsDropdown();
         resetConfirmationModal.style.display = "flex";
-        resetConfirmationModal
-            .querySelector(".modal-content")
-            .classList.add("show");
+        resetConfirmationModal.querySelector(".modal-content").classList.add("show");
     });
 
     confirmResetBtn.addEventListener("click", async () => {
         resetConfirmationModal.style.display = "none";
-
-        domainAliases = [];
-        await saveAliases(domainAliases, messageBox);
-
-        renderConfigViewAliasesWrapper();
-        showMessage(messageBox, "All aliases removed successfully!", "success");
-        resetAliasForm();
+        domainGroups = [];
+        openAccordionIndices = new Set();
+        await saveDomainGroups(domainGroups, messageBox);
+        showMessage(messageBox, "All data removed.", "success");
+        showView("config");
     });
 
     cancelResetBtn.addEventListener("click", () => {
         resetConfirmationModal.style.display = "none";
     });
 
-    // --- Export/Import Aliases Functionality ---
+    // ── Export / Import ───────────────────────────────────────────────────────
+
     exportAliasesBtn.addEventListener("click", async () => {
         closeActionsDropdown();
-        const aliasesToExport = await loadAliases(messageBox);
-        const jsonString = JSON.stringify(aliasesToExport, null, 2);
-
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "subdomain_switcher_aliases.json";
+        const json = JSON.stringify(domainGroups, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement("a");
+        a.href     = url;
+        a.download = "subdomain_switcher_config.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showMessage(messageBox, "Aliases exported successfully!", "success");
+        showMessage(messageBox, "Configuration exported.", "success");
     });
 
     importAliasesBtn.addEventListener("click", () => {
         closeActionsDropdown();
         importConfirmationModal.style.display = "flex";
-        importConfirmationModal
-            .querySelector(".modal-content")
-            .classList.add("show");
+        importConfirmationModal.querySelector(".modal-content").classList.add("show");
     });
 
     confirmImportBtn.addEventListener("click", () => {
@@ -486,90 +502,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     cancelImportBtn.addEventListener("click", () => {
         importConfirmationModal.style.display = "none";
-        importAliasesFile.value = "";
         fileToImport = null;
     });
 
     importAliasesFile.addEventListener("change", (event) => {
         fileToImport = event.target.files[0];
-        if (!fileToImport) {
-            return;
-        }
+        if (!fileToImport) return;
 
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                const importedData = JSON.parse(e.target.result);
-
+                const data = JSON.parse(e.target.result);
                 const isValid =
-                    Array.isArray(importedData) &&
-                    importedData.every(
-                        (alias) =>
-                            typeof alias === "object" &&
-                            alias !== null &&
-                            typeof alias.name === "string" &&
-                            typeof alias.subdomain === "string" &&
-                            typeof alias.domain === "string" &&
-                            typeof alias.color === "string" &&
-                            /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(
-                                alias.color,
+                    Array.isArray(data) &&
+                    data.every(
+                        (g) =>
+                            typeof g.domain === "string" &&
+                            Array.isArray(g.aliases) &&
+                            g.aliases.every(
+                                (a) =>
+                                    typeof a.name === "string" &&
+                                    typeof a.subdomain === "string" &&
+                                    typeof a.color === "string" &&
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(a.color),
                             ),
                     );
 
                 if (!isValid) {
-                    showMessage(
-                        messageBox,
-                        "Invalid JSON format or data structure in the imported file. Please ensure it's an array of alias objects.",
-                        "error",
-                    );
+                    showMessage(messageBox, "Invalid file format.", "error");
                     return;
                 }
 
-                domainAliases = importedData;
-                await saveAliases(domainAliases, messageBox);
-                renderConfigViewAliasesWrapper();
-                showMessage(
-                    messageBox,
-                    "Aliases imported successfully!",
-                    "success",
-                );
-            } catch (error) {
-                console.error("Error parsing or importing aliases:", error);
-                showMessage(
-                    messageBox,
-                    "Error importing aliases. Make sure the file is a valid JSON.",
-                    "error",
-                );
+                domainGroups = data;
+                openAccordionIndices = new Set();
+                await saveDomainGroups(domainGroups, messageBox);
+                showMessage(messageBox, "Configuration imported.", "success");
+                showView("config");
+            } catch {
+                showMessage(messageBox, "Error reading file. Please check the JSON.", "error");
             } finally {
                 event.target.value = "";
                 fileToImport = null;
             }
         };
         reader.readAsText(fileToImport);
-    });
-
-    // --- Delete Alias Confirmation Logic ---
-    confirmDeleteBtn.addEventListener("click", async () => {
-        deleteConfirmationModal.style.display = "none";
-        if (aliasIndexToDelete !== -1) {
-            domainAliases.splice(aliasIndexToDelete, 1);
-            await saveAliases(domainAliases, messageBox);
-
-            renderConfigViewAliasesWrapper();
-            showMessage(messageBox, "Alias deleted successfully!", "success");
-            resetAliasForm();
-            aliasIndexToDelete = -1;
-        }
-    });
-
-    cancelDeleteBtn.addEventListener("click", () => {
-        deleteConfirmationModal.style.display = "none";
-        aliasIndexToDelete = -1;
-    });
-
-    // --- Actions Icon Dropdown Toggle ---
-    actionsIcon.addEventListener("click", (event) => {
-        event.stopPropagation();
-        configActionsDropdown.classList.toggle("hidden");
     });
 });
