@@ -11,7 +11,7 @@ import {
     showMessage,
     isSameOrSubdomain,
 } from "./utils.js";
-import { getCurrentTabUrl, saveAliases } from "./storage.js"; // Need saveAliases for delete operations
+import { getCurrentTabUrl } from "./storage.js";
 
 // Default color for new aliases/buttons if not specified
 const defaultButtonColor = "#3b82f6";
@@ -298,9 +298,9 @@ export function renderConfigViewAliases(
     domainAliases,
     handleEditOrCopyAlias, // Renamed from setEditingAliasIndex to reflect broader use
     messageBox,
-    renderMainViewAliasesCallback,
-    currentUrlDisplay,
-    currentUrlDisplayTable,
+    renderMainViewAliasesCallback = () => {},
+    currentUrlDisplay = null,
+    currentUrlDisplayTable = null,
     deleteConfirmationModal,
     aliasToDeleteName,
     setAliasIndexToDelete,
@@ -548,28 +548,3 @@ export function resetAliasForm(
     document.getElementById("colorPickerDropdown").style.display = "none"; // Ensure picker is closed
 }
 
-/**
- * Switches between the main view and the configuration view.
- * @param {HTMLElement} mainView - The main view DOM element.
- * @param {HTMLElement} configView - The config view DOM element.
- * @param {HTMLElement} addAliasView - The add alias view DOM element. // NEW: Added addAliasView
- * @param {Function} renderConfigViewAliasesCallback - Callback to re-render config aliases.
- * @param {Function} resetAliasFormCallback - Callback to reset the alias form.
- */
-export function showView(
-    mainView,
-    configView,
-    addAliasView,
-    renderConfigViewAliasesCallback,
-    resetAliasFormCallback,
-) {
-    // Hide all views first
-    mainView.style.display = "none";
-    configView.style.display = "none";
-    addAliasView.style.display = "none"; // NEW: Hide addAliasView
-
-    // Show the requested view
-    // This function will be called by main.js with the specific view to show
-    // The main.js will handle specific callbacks like renderConfigViewAliasesCallback
-    // or resetAliasFormCallback as needed for each view transition.
-}
