@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Subdomain Switcher - Configure Aliases</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="options.css" />
+    </head>
+    <body>
+        <div class="container">
+
+            <!-- ── VIEW 1: Accordion Domain List ──────────────────────────── -->
+            <div id="configView">
+                <div class="header">
+                    Configure Aliases
+                    <div id="addDomainIcon" class="options-icon add-alias-icon" title="Add New Domain">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                    </div>
+                    <div id="actionsIcon" class="options-icon" title="Actions">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                    </div>
+                    <div id="configActionsDropdown" class="config-actions-dropdown hidden">
+                        <button id="exportAliasesBtn" class="dropdown-btn">Export Aliases</button>
+                        <input type="file" id="importAliasesFile" accept=".json" class="hidden" />
+                        <button id="importAliasesBtn" class="dropdown-btn">Import Aliases</button>
+                        <button id="resetAliasesBtn" class="dropdown-btn reset-btn-dropdown">Reset All</button>
+                    </div>
+                </div>
+                <div id="config-domains-container" class="mb-5">
+                    <!-- Accordion domain rows rendered here -->
+                </div>
+            </div>
+
+            <!-- ── VIEW 2: Alias Editor ────────────────────────────────────── -->
+            <div id="addAliasView" style="display: none">
+                <div class="header">
+                    <span class="header-title" id="editorTitle">Add New Alias</span>
+                    <div id="backToAliasListBtn" class="options-icon" title="Back">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="newAliasName">Alias Name:</label>
+                    <input type="text" id="newAliasName" placeholder="e.g., Production" class="text-input" />
+                </div>
+                <div class="input-group">
+                    <label for="newAliasSubdomainPrefix">Subdomain:</label>
+                    <div class="subdomain-input-wrap">
+                        <input
+                            type="text"
+                            id="newAliasSubdomainPrefix"
+                            placeholder="prefix"
+                            class="text-input subdomain-prefix-input"
+                        />
+                        <span class="subdomain-domain-suffix" id="subdomainSuffix">.example.com</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="customHexInput">Button Color:</label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            id="customHexInput"
+                            placeholder="#RRGGBB or #RGB"
+                            maxlength="7"
+                            class="custom-hex-input flex-grow"
+                        />
+                        <div
+                            id="newAliasColorDisplay"
+                            class="color-swatch-preview current-color-display"
+                            style="background-color: #3b82f6"
+                        ></div>
+                    </div>
+                    <input type="hidden" id="newAliasColorHidden" value="#3b82f6" />
+                    <div id="colorPickerDropdown" class="color-picker-dropdown">
+                        <div id="colorPickerResetBtn" class="color-picker-reset">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="color-picker-reset-icon">
+                                <path d="M17 3a2.85 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                <path d="M15 5l4 4" />
+                            </svg>
+                            Reset
+                        </div>
+                        <div id="colorGrid" class="color-grid"></div>
+                    </div>
+                </div>
+
+                <button id="addAliasBtn" class="action-btn add-btn">Add Alias</button>
+                <button id="cancelEditBtn" class="action-btn bg-gray-500 hover:bg-gray-700 mt-2" style="display: none">
+                    Cancel Edit
+                </button>
+            </div>
+
+            <!-- ── VIEW 3: Add Domain ──────────────────────────────────────── -->
+            <div id="addDomainView" style="display: none">
+                <div class="header">
+                    <span class="header-title">Add Domain</span>
+                    <div id="backFromAddDomainBtn" class="options-icon" title="Back to Domains">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="newDomainInput">Domain:</label>
+                    <input type="text" id="newDomainInput" placeholder="e.g., app.example.com" class="text-input" />
+                </div>
+                <button id="createDomainBtn" class="action-btn add-btn">Create Domain</button>
+            </div>
+
+            <div id="messageBox" class="message-box"></div>
+        </div>
+
+        <!-- Modal: Confirm Reset -->
+        <div id="resetConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Confirm Reset</div>
+                <div class="modal-message">Are you sure you want to remove all saved data? This action cannot be undone.</div>
+                <div class="modal-actions">
+                    <button id="confirmResetBtn" class="modal-btn modal-btn-confirm">Yes, Remove All</button>
+                    <button id="cancelResetBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Confirm Import -->
+        <div id="importConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Confirm Import</div>
+                <div class="modal-message">Importing will <strong>overwrite</strong> all current data. Continue?</div>
+                <div class="modal-actions">
+                    <button id="confirmImportBtn" class="modal-btn modal-btn-confirm">Yes, Overwrite</button>
+                    <button id="cancelImportBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Confirm Delete Domain -->
+        <div id="deleteDomainModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Delete Domain</div>
+                <div class="modal-message">Delete "<span id="domainToDeleteName" class="font-semibold"></span>" and all its aliases? This cannot be undone.</div>
+                <div class="modal-actions">
+                    <button id="confirmDeleteDomainBtn" class="modal-btn modal-btn-confirm">Yes, Delete</button>
+                    <button id="cancelDeleteDomainBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Confirm Delete Alias -->
+        <div id="deleteAliasModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">Delete Alias</div>
+                <div class="modal-message">Delete alias "<span id="aliasToDeleteName" class="font-semibold"></span>"? This cannot be undone.</div>
+                <div class="modal-actions">
+                    <button id="confirmDeleteAliasBtn" class="modal-btn modal-btn-confirm">Yes, Delete</button>
+                    <button id="cancelDeleteAliasBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="src/options.js"></script>
+    </body>
+</html>
