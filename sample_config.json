@@ -1,0 +1,47 @@
+[
+    {
+        "domain": "app.example.com",
+        "aliases": [
+            {
+                "name": "Development",
+                "subdomain": "dev",
+                "color": "#43A047"
+            },
+            {
+                "name": "UAT",
+                "subdomain": "uat",
+                "color": "#FFA726"
+            },
+            {
+                "name": "Staging",
+                "subdomain": "staging",
+                "color": "#3F51B5"
+            },
+            {
+                "name": "Production",
+                "subdomain": "prod",
+                "color": "#E53935"
+            }
+        ]
+    },
+    {
+        "domain": "dashboard.example.com",
+        "aliases": [
+            {
+                "name": "Dev Dashboard",
+                "subdomain": "dev",
+                "color": "#43A047"
+            },
+            {
+                "name": "Staging Dashboard",
+                "subdomain": "staging",
+                "color": "#3F51B5"
+            },
+            {
+                "name": "Prod Dashboard",
+                "subdomain": "prod",
+                "color": "#E53935"
+            }
+        ]
+    }
+]
