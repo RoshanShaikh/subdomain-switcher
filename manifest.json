@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Subdomain Switcher",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Quickly switches between subdomains of the current page — preserving the full URL path, query parameters, and hash.",
   "permissions": [
     "activeTab",
@@ -23,5 +23,6 @@
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
-  }
+  },
+  "key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3YV6gWEomWSfI4FSRLDEpscqtiCniEBAhhU9EJj4zOWqgd56xyUZJuy7GxBBRIlOG+cx1ueKlSPKJ1Kn3LQX/FcKKnOk0kieoH++lKkdiJVz+QsspXgIFAmU2HQaVPouQ4uieE4G9sZ6wm37wF4h41jHJDOfZobXA0J8Z7jsA4XRm8EVOciQTx78symJH++jAFtrj1A6xEC3rqbMHfKwho82fRaFnRug+59Wp/04nmrYGXmNGN6b2l/0GsFM7E+bbKslkqtAEtoKyYTzNOZ2dlsb551BGLEB8onIJcWXKXSPrGC5Vp8cljgKsiiuDO42naD6mU6QFa1Ree5CtqgANwIDAQAB"
 }
