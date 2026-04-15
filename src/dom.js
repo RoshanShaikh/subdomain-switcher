@@ -34,7 +34,7 @@ const defaultColors = [
 
 /** Compose the full hostname from a prefix and a domain. */
 function fullHostname(prefix, domain) {
-    return `${prefix}.${domain}`;
+    return `${prefix?`${prefix}.`:""}${domain}`;
 }
 
 // ---------------------------------------------------------------------------

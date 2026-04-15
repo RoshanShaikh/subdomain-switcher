@@ -364,11 +364,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        if (!prefix) {
-            showInputError(newAliasSubdomainPrefix, "Subdomain prefix is required.");
-            hasError = true;
-        } else if (!/^[a-zA-Z0-9-]+$/.test(prefix)) {
-            showInputError(newAliasSubdomainPrefix, "Only letters, numbers, and hyphens allowed.");
+        if (!/^[a-zA-Z0-9-\.]*$/.test(prefix)) {
+            showInputError(
+                newAliasSubdomainPrefix,
+                "Only letters, numbers, period and hyphens allowed.",
+            );
             hasError = true;
         }
 
