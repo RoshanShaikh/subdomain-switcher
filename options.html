@@ -54,7 +54,7 @@
                     <label for="newAliasName">Alias Name:</label>
                     <input type="text" id="newAliasName" placeholder="e.g., Production" class="text-input" />
                 </div>
-                <div class="input-group">
+                <div class="input-group" id="subdomainInputGroup">
                     <label for="newAliasSubdomainPrefix">Subdomain:</label>
                     <div class="subdomain-input-wrap">
                         <input
@@ -65,6 +65,15 @@
                         />
                         <span class="subdomain-domain-suffix" id="subdomainSuffix">.example.com</span>
                     </div>
+                </div>
+                <div class="input-group" id="targetHostnameGroup" style="display: none">
+                    <label for="targetHostnameInput" id="targetHostnameLabel">Target Hostname:</label>
+                    <input
+                        type="text"
+                        id="targetHostnameInput"
+                        placeholder="e.g., gitmcp.io"
+                        class="text-input"
+                    />
                 </div>
 
                 <div class="input-group">
@@ -113,7 +122,17 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label for="newDomainInput">Domain:</label>
+                    <label class="switch-row" id="crossDomainSwitchRow" for="allowCrossDomainCheckbox">
+                        <span class="switch-label">Enable cross-domain for this group</span>
+                        <span class="switch-control">
+                            <input type="checkbox" id="allowCrossDomainCheckbox" />
+                            <span class="switch-slider"></span>
+                        </span>
+                    </label>
+                    <div id="crossDomainToggleInfo" class="toggle-info"></div>
+                </div>
+                <div class="input-group">
+                    <label for="newDomainInput" id="domainInputLabel">Domain:</label>
                     <input type="text" id="newDomainInput" placeholder="e.g., app.example.com" class="text-input" />
                 </div>
                 <button id="createDomainBtn" class="action-btn add-btn">Create Domain</button>

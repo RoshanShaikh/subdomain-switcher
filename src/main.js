@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     chrome.storage.sync.onChanged.addListener(async (changes) => {
         if (changes.domainGroups) {
-            domainGroups = changes.domainGroups.newValue || [];
+            domainGroups = await loadDomainGroups(messageBox);
             const updatedUrl = await getCurrentTabUrl(messageBox);
             const updatedHostname = updatedUrl ? cleanHostname(new URL(updatedUrl).hostname) : null;
             renderWrapper(updatedHostname);
