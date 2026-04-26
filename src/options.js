@@ -1,6 +1,6 @@
 /**
  * Options page logic for the Subdomain Switcher.
- * Schema: domainGroups = [{ domain: string, aliases: [{ color, name, subdomain }] }]
+ * Schema: domainGroups = [{ domain: string, allowCrossDomain?: boolean, aliases: [{ color, name, subdomain, targetHost?: string }] }]
  *
  * Views:
  *  - configView    : accordion list of all domains (home)
@@ -20,6 +20,7 @@ import {
     renderColorGrid,
     renderAccordionDomains,
     resetAliasForm as domResetAliasForm,
+    getAliasTargetHostname,
 } from "./dom.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const editorTitle              = document.getElementById("editorTitle");
     const backToAliasListBtn       = document.getElementById("backToAliasListBtn");
     const newAliasNameInput        = document.getElementById("newAliasName");
+    const subdomainInputGroup      = document.getElementById("subdomainInputGroup");
     const newAliasSubdomainPrefix  = document.getElementById("newAliasSubdomainPrefix");
     const subdomainSuffix          = document.getElementById("subdomainSuffix");
     const newAliasColorDisplay     = document.getElementById("newAliasColorDisplay");
@@ -54,10 +56,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const colorPickerResetBtn    = document.getElementById("colorPickerResetBtn");
     const addAliasBtn            = document.getElementById("addAliasBtn");
     const cancelEditBtn          = document.getElementById("cancelEditBtn");
+    const targetHostnameGroup    = document.getElementById("targetHostnameGroup");
+    const targetHostnameLabel    = document.getElementById("targetHostnameLabel");
+    const targetHostnameInput    = document.getElementById("targetHostnameInput");
 
     // Add domain view
     const backFromAddDomainBtn = document.getElementById("backFromAddDomainBtn");
     const newDomainInput       = document.getElementById("newDomainInput");
+    const domainInputLabel     = document.getElementById("domainInputLabel");
+    const crossDomainSwitchRow = document.getElementById("crossDomainSwitchRow");
+    const allowCrossDomainCheckbox = document.getElementById("allowCrossDomainCheckbox");
+    const crossDomainToggleInfo = document.getElementById("crossDomainToggleInfo");
     const createDomainBtn      = document.getElementById("createDomainBtn");
 
     // Message box & modals
@@ -96,6 +105,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     const closeActionsDropdown = () => configActionsDropdown.classList.add("hidden");
+    const composeHostname = (prefix, domain) => `${prefix ? `${prefix}.` : ""}${domain}`;
+    const resolveAliasHostname = (alias, groupDomain) => getAliasTargetHostname(alias, groupDomain);
+    const parseHostname = (raw) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        try {
+            const url = new URL(`http://${trimmed}`);
+            const hostname = cleanHostname(url.hostname);
+            if (hostname !== cleanHostname(trimmed)) return null;
+            return hostname;
+        } catch {
+            return null;
+        }
+    };
+    const updateDomainInputPresentation = () => {
+        const isCrossDomain = allowCrossDomainCheckbox.checked;
+        domainInputLabel.textContent = isCrossDomain ? "Domain Name:" : "Domain:";
+        newDomainInput.placeholder = isCrossDomain ? "e.g., github" : "e.g., app.example.com";
+    };
+
+    const updateCrossDomainToggleLock = () => {
+        if (editingDomainIndex === -1) {
+            allowCrossDomainCheckbox.disabled = false;
+            crossDomainSwitchRow.classList.remove("is-disabled");
+            crossDomainToggleInfo.textContent = "";
+            return;
+        }
+        const aliasCount = (domainGroups[editingDomainIndex]?.aliases || []).length;
+        const shouldLock = aliasCount > 0;
+        allowCrossDomainCheckbox.disabled = shouldLock;
+        crossDomainSwitchRow.classList.toggle("is-disabled", shouldLock);
+        if (shouldLock) {
+            crossDomainToggleInfo.textContent =
+                "Cross-domain setting is locked because this group already has aliases.";
+        } else {
+            crossDomainToggleInfo.textContent = "";
+        }
+    };
 
     const setSelectedColor = (color, fromHexInput = false) =>
         domSetSelectedColor(color, newAliasColorHidden, newAliasColorDisplay, customHexInput, fromHexInput);
@@ -104,6 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         domResetAliasForm(
             newAliasNameInput,
             newAliasSubdomainPrefix,
+            targetHostnameInput,
             setSelectedColor,
             addAliasBtn,
             (idx) => { editingAliasIndex = idx; },
@@ -150,14 +198,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (editingDomainIndex !== -1) {
                 // Edit mode — pre-fill existing domain
                 newDomainInput.value = domainGroups[editingDomainIndex].domain;
+                allowCrossDomainCheckbox.checked = Boolean(domainGroups[editingDomainIndex].allowCrossDomain);
                 document.querySelector("#addDomainView .header-title").textContent = "Edit Domain";
                 createDomainBtn.textContent = "Save Changes";
             } else {
                 // Create mode
                 newDomainInput.value = "";
+                allowCrossDomainCheckbox.checked = false;
                 document.querySelector("#addDomainView .header-title").textContent = "Add Domain";
                 createDomainBtn.textContent = "Create Domain";
             }
+            updateCrossDomainToggleLock();
+            updateDomainInputPresentation();
         }
     };
 
@@ -166,6 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         editingAliasIndex = aliasIdx;
 
         const domain = domainGroups[groupIdx].domain;
+        const isCrossDomain = Boolean(domainGroups[groupIdx].allowCrossDomain);
         // Update the suffix label
         subdomainSuffix.textContent = "." + domain;
 
@@ -173,6 +226,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // alias.subdomain is stored as prefix only — use it directly
         newAliasSubdomainPrefix.value = aliasData.subdomain || "";
+        targetHostnameInput.value = aliasData.targetHost || "";
+        subdomainInputGroup.style.display = isCrossDomain ? "none" : "block";
+        targetHostnameGroup.style.display = isCrossDomain ? "block" : "none";
+        targetHostnameLabel.textContent = isCrossDomain ? "Domain Name:" : "Target Hostname:";
+        targetHostnameInput.placeholder = isCrossDomain ? "Domain Name" : "e.g., gitmcp.io";
 
         setSelectedColor(aliasData.color || "#3b82f6");
 
@@ -224,14 +282,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     chrome.storage.sync.onChanged.addListener(async (changes) => {
         if (changes.domainGroups) {
-            domainGroups = changes.domainGroups.newValue || [];
+            const incoming = Array.isArray(changes.domainGroups.newValue)
+                ? changes.domainGroups.newValue
+                : [];
+            domainGroups = incoming.map((g) => ({
+                domain: cleanHostname(g.domain || ""),
+                allowCrossDomain: Boolean(g.allowCrossDomain),
+                aliases: Array.isArray(g.aliases)
+                    ? g.aliases.map((a) => {
+                        const normalizedTargetHost = parseHostname(a.targetHost || "");
+                        return {
+                            name: typeof a.name === "string" ? a.name : "",
+                            subdomain: typeof a.subdomain === "string" ? a.subdomain : "",
+                            color: typeof a.color === "string" ? a.color : "#3b82f6",
+                            ...(normalizedTargetHost ? { targetHost: normalizedTargetHost } : {}),
+                        };
+                    })
+                    : [],
+            })).filter((g) => g.domain);
             if (configView.style.display === "block") redrawAccordion();
         }
     });
 
     // ── Config view events ────────────────────────────────────────────────────
 
-    addDomainIcon.addEventListener("click", () => showView("addDomain"));
+    addDomainIcon.addEventListener("click", () => {
+        editingDomainIndex = -1;
+        showView("addDomain");
+    });
 
     actionsIcon.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -284,6 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
             domainGroups[editingDomainIndex].domain = domain;
+            domainGroups[editingDomainIndex].allowCrossDomain = allowCrossDomainCheckbox.checked;
             await saveDomainGroups(domainGroups, messageBox);
             showMessage(messageBox, `Domain updated to "${domain}".`, "success");
             openAccordionIndices.add(editingDomainIndex);
@@ -294,12 +373,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 showInputError(newDomainInput, "This domain already exists.");
                 return;
             }
-            domainGroups.push({ domain, aliases: [] });
+            domainGroups.push({
+                domain,
+                allowCrossDomain: allowCrossDomainCheckbox.checked,
+                aliases: [],
+            });
             await saveDomainGroups(domainGroups, messageBox);
             showMessage(messageBox, `Domain "${domain}" created.`, "success");
             openAccordionIndices.add(domainGroups.length - 1);
         }
         showView("config");
+    });
+
+    allowCrossDomainCheckbox.addEventListener("change", () => {
+        updateDomainInputPresentation();
     });
 
     // ── Alias editor events ───────────────────────────────────────────────────
@@ -355,8 +442,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         clearInputErrors();
         const name   = newAliasNameInput.value.trim();
         const prefix = newAliasSubdomainPrefix.value.trim();
+        const rawTargetHost = targetHostnameInput.value.trim();
         const color  = newAliasColorHidden.value;
         const group  = domainGroups[activeDomainIndex];
+        const targetHost = group.allowCrossDomain ? parseHostname(rawTargetHost) : null;
         let hasError = false;
 
         if (!name) {
@@ -364,10 +453,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        if (!/^[a-zA-Z0-9-\.]*$/.test(prefix)) {
+        if (!group.allowCrossDomain && !/^[a-zA-Z0-9-\.]*$/.test(prefix)) {
             showInputError(
                 newAliasSubdomainPrefix,
                 "Only letters, numbers, period and hyphens allowed.",
+            );
+            hasError = true;
+        }
+
+        if (group.allowCrossDomain && !rawTargetHost) {
+            showInputError(targetHostnameInput, "Domain Name is required.");
+            hasError = true;
+        } else if (group.allowCrossDomain && rawTargetHost && !targetHost) {
+            showInputError(
+                targetHostnameInput,
+                "Enter a valid hostname only (e.g., gitmcp.io).",
             );
             hasError = true;
         }
@@ -384,20 +484,40 @@ document.addEventListener("DOMContentLoaded", async () => {
             hasError = true;
         }
 
-        // Duplicate check: compare prefixes directly (domain is shared, so prefix uniqueness is enough)
-        if (!hasError && aliases.some((a, i) => i !== editingAliasIndex && a.subdomain.toLowerCase() === prefix.toLowerCase())) {
-            showInputError(newAliasSubdomainPrefix, "This subdomain already exists.");
+        const resolvedHostname = cleanHostname(
+            targetHost || composeHostname(prefix, group.domain),
+        );
+        if (
+            !hasError &&
+            aliases.some(
+                (a, i) =>
+                    i !== editingAliasIndex &&
+                    resolveAliasHostname(a, group.domain) === resolvedHostname,
+            )
+        ) {
+            showInputError(
+                group.allowCrossDomain && rawTargetHost
+                    ? targetHostnameInput
+                    : newAliasSubdomainPrefix,
+                "This target hostname already exists.",
+            );
             hasError = true;
         }
 
         if (hasError) return;
 
         // Store prefix only — full hostname is composed at runtime as prefix + "." + group.domain
+        const aliasPayload = {
+            name,
+            subdomain: prefix,
+            color,
+            ...(targetHost ? { targetHost } : {}),
+        };
         if (editingAliasIndex !== -1) {
-            group.aliases[editingAliasIndex] = { name, subdomain: prefix, color };
+            group.aliases[editingAliasIndex] = aliasPayload;
             showMessage(messageBox, "Alias updated successfully!", "success");
         } else {
-            group.aliases.push({ name, subdomain: prefix, color });
+            group.aliases.push(aliasPayload);
             showMessage(messageBox, "Alias added successfully!", "success");
         }
 
@@ -518,12 +638,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     data.every(
                         (g) =>
                             typeof g.domain === "string" &&
+                            (g.allowCrossDomain === undefined || typeof g.allowCrossDomain === "boolean") &&
                             Array.isArray(g.aliases) &&
                             g.aliases.every(
                                 (a) =>
                                     typeof a.name === "string" &&
                                     typeof a.subdomain === "string" &&
                                     typeof a.color === "string" &&
+                                    (a.targetHost === undefined || typeof a.targetHost === "string") &&
                                     /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(a.color),
                             ),
                     );
@@ -533,7 +655,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
-                domainGroups = data;
+                domainGroups = data.map((g) => ({
+                    domain: cleanHostname(g.domain),
+                    allowCrossDomain: Boolean(g.allowCrossDomain),
+                    aliases: g.aliases.map((a) => {
+                        const normalizedTargetHost = parseHostname(a.targetHost || "");
+                        return {
+                            name: a.name,
+                            subdomain: a.subdomain,
+                            color: a.color,
+                            ...(normalizedTargetHost ? { targetHost: normalizedTargetHost } : {}),
+                        };
+                    }),
+                }));
                 openAccordionIndices = new Set();
                 await saveDomainGroups(domainGroups, messageBox);
                 showMessage(messageBox, "Configuration imported.", "success");
