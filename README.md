@@ -10,6 +10,7 @@ A Chrome extension for quickly switching between subdomains of the current page 
 - **Domain-grouped aliases** — organize aliases under their parent domain for a clean, structured overview
 - **Rename domains** — updating a domain name automatically applies to all its aliases everywhere
 - **Custom alias colors** — assign a color to each alias for instant visual identification in the popup
+- **Optional cross-domain switching** — enable per domain and target any hostname (e.g. `github.com` -> `gitmcp.io`) while keeping path/query/hash
 - **Color-coded current URL** — the popup header reflects the active alias color when the current tab matches a configured alias
 - **Export / Import** — back up and restore your full configuration as a JSON file
 - **Reset** — clear all data with a confirmation prompt
@@ -61,13 +62,14 @@ Click the green **+** icon on any domain row (visible on hover). Fill in the ali
 
 - **Alias Name** — a friendly label shown on the switch button (e.g. `Production`, `UAT`)
 - **Subdomain** — the subdomain prefix; the domain is shown as a fixed suffix (e.g. enter `dev`, the full hostname `dev.app.example.com` is used automatically)
+- **Target Hostname** — available when cross-domain is enabled for that domain; use this to jump to a completely different hostname
 - **Button Color** — choose from the color grid or enter a hex code
 
 Click **Add Alias** to save.
 
 #### Editing a domain
 
-Click the blue **pencil** icon on a domain row (visible on hover) to rename it. All aliases under that domain reflect the new hostname automatically.
+Click the blue **pencil** icon on a domain row (visible on hover) to rename it and configure whether cross-domain aliases are allowed for that domain.
 
 #### Editing an alias
 

@@ -2,7 +2,7 @@
  * DOM manipulation and rendering for the Subdomain Switcher.
  *
  * Storage schema:
- *   domainGroups = [{ domain: string, aliases: [{ color, name, subdomain }] }]
+ *   domainGroups = [{ domain: string, allowCrossDomain?: boolean, aliases: [{ color, name, subdomain, targetHost?: string }] }]
  *
  * alias.subdomain  = prefix ONLY  (e.g. "3777749-sb1")
  * group.domain     = base domain  (e.g. "app.netsuite.com")
@@ -37,6 +37,29 @@ function fullHostname(prefix, domain) {
     return `${prefix?`${prefix}.`:""}${domain}`;
 }
 
+/** Resolve an alias target hostname with optional cross-domain override. */
+export function getAliasTargetHostname(alias, groupDomain) {
+    return cleanHostname(alias.targetHost || fullHostname(alias.subdomain, groupDomain));
+}
+
+function groupContainsHostname(currentHostname, group) {
+    const cleanedCurrent = cleanHostname(currentHostname || "");
+    if (!cleanedCurrent) return false;
+
+    const groupDomain = cleanHostname(group.domain);
+    if (isSameOrSubdomain(cleanedCurrent, groupDomain)) {
+        return true;
+    }
+
+    if (!group.allowCrossDomain) {
+        return false;
+    }
+
+    return (group.aliases || []).some((alias) =>
+        isSameOrSubdomain(cleanedCurrent, getAliasTargetHostname(alias, group.domain)),
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Popup: current URL display
 // ---------------------------------------------------------------------------
@@ -69,8 +92,7 @@ export function updateCurrentUrlDisplay(
 
         outer: for (const group of domainGroups) {
             for (const alias of group.aliases || []) {
-                // Compose full hostname from stored prefix + group domain
-                if (cleanHostname(fullHostname(alias.subdomain, group.domain)) === currentFullHostname) {
+                if (getAliasTargetHostname(alias, group.domain) === currentFullHostname) {
                     displayedText = alias.name;
                     themeColor = alias.color || defaultButtonColor;
                     break outer;
@@ -119,8 +141,11 @@ export function renderMainViewAliases(
     domainGroups.forEach((group) => {
         const groupKey = cleanHostname(group.domain);
         const aliases = group.aliases || [];
+        const shouldRenderGroup =
+            Boolean(currentTabFullHostname) &&
+            groupContainsHostname(currentTabFullHostname, group);
 
-        if (currentTabFullHostname && isSameOrSubdomain(currentTabFullHostname, groupKey)) {
+        if (shouldRenderGroup) {
             foundMatchingGroup = true;
 
             const domainGroupDiv = document.createElement("div");
@@ -135,8 +160,7 @@ export function renderMainViewAliases(
             buttonsContainer.className = "domain-group-buttons";
 
             aliases.forEach((alias) => {
-                // Compose full hostname for comparison and navigation
-                const aliasFullHostname = cleanHostname(fullHostname(alias.subdomain, group.domain));
+                const aliasFullHostname = getAliasTargetHostname(alias, group.domain);
 
                 if (aliasFullHostname !== currentTabFullHostname) {
                     const aliasButton = document.createElement("button");
@@ -176,7 +200,7 @@ export function renderMainViewAliases(
         aliasesContainer.textContent =
             "No aliases configured for this domain, or current page is already aliased. Click the settings icon to add some.";
     } else if (aliasesContainer.children.length === 0 && foundMatchingGroup) {
-        aliasesContainer.textContent = "No other aliases to switch to on this domain.";
+        aliasesContainer.textContent = "No other aliases to switch to in this group.";
     }
 }
 
@@ -318,10 +342,10 @@ export function renderAccordionDomains(
                 nameSpan.className = "alias-list-name";
                 nameSpan.textContent = alias.name;
 
-                // Display the composed full hostname so the user sees the real target
+                // Display resolved hostname so cross-domain targetHost is visible
                 const subSpan = document.createElement("span");
                 subSpan.className = "alias-list-subdomain";
-                subSpan.textContent = fullHostname(alias.subdomain, group.domain);
+                subSpan.textContent = getAliasTargetHostname(alias, group.domain);
 
                 textWrap.appendChild(nameSpan);
                 textWrap.appendChild(subSpan);
@@ -442,6 +466,7 @@ export function setSelectedColor(
 export function resetAliasForm(
     newAliasNameInput,
     newAliasSubdomainPrefix,
+    targetHostnameInput,
     setSelectedColorCallback,
     addAliasBtn,
     setEditingAliasIndex,
@@ -449,6 +474,7 @@ export function resetAliasForm(
 ) {
     newAliasNameInput.value = "";
     newAliasSubdomainPrefix.value = "";
+    targetHostnameInput.value = "";
     setSelectedColorCallback(defaultButtonColor);
     addAliasBtn.textContent = "Add Alias";
     addAliasBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-700");

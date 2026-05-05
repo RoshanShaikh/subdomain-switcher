@@ -1,7 +1,7 @@
 /**
  * Handles data storage operations for the Subdomain Switcher using Chrome's storage.sync API.
  *
- * Schema: [{ domain: string, aliases: [{ color, name, subdomain }] }]
+ * Schema: [{ domain: string, allowCrossDomain?: boolean, aliases: [{ color, name, subdomain, targetHost?: string }] }]
  *   - domain           : the base domain, e.g. "app.netsuite.com"
  *   - alias.subdomain  : prefix ONLY, e.g. "3777749-sb1"
  *   - full hostname    : composed at runtime as alias.subdomain + "." + domain
@@ -13,6 +13,46 @@ import { showMessage } from "./utils.js";
 
 const STORAGE_KEY = "domainGroups";
 
+function normalizeHostname(value) {
+    if (typeof value !== "string") return null;
+    const raw = value.trim();
+    if (!raw) return null;
+    try {
+        const url = new URL(`http://${raw}`);
+        return url.hostname.toLowerCase();
+    } catch {
+        return null;
+    }
+}
+
+function normalizeAlias(alias) {
+    if (!alias || typeof alias !== "object") return null;
+    const name = typeof alias.name === "string" ? alias.name : "";
+    const subdomain = typeof alias.subdomain === "string" ? alias.subdomain : "";
+    const color = typeof alias.color === "string" ? alias.color : "";
+    const targetHost = normalizeHostname(alias.targetHost);
+    return {
+        name,
+        subdomain,
+        color,
+        ...(targetHost ? { targetHost } : {}),
+    };
+}
+
+function normalizeDomainGroup(group) {
+    if (!group || typeof group !== "object") return null;
+    const domain = normalizeHostname(group.domain);
+    if (!domain) return null;
+    const aliases = Array.isArray(group.aliases)
+        ? group.aliases.map(normalizeAlias).filter(Boolean)
+        : [];
+    return {
+        domain,
+        allowCrossDomain: Boolean(group.allowCrossDomain),
+        aliases,
+    };
+}
+
 /**
  * Loads domain groups from Chrome storage.
  * @param {HTMLElement} messageBox
@@ -21,7 +61,8 @@ const STORAGE_KEY = "domainGroups";
 export async function loadDomainGroups(messageBox) {
     try {
         const result = await chrome.storage.sync.get(STORAGE_KEY);
-        return result[STORAGE_KEY] || [];
+        const groups = Array.isArray(result[STORAGE_KEY]) ? result[STORAGE_KEY] : [];
+        return groups.map(normalizeDomainGroup).filter(Boolean);
     } catch (error) {
         console.error("Error loading domain groups from storage:", error);
         showMessage(messageBox, "Error loading saved data.", "error");
@@ -36,7 +77,10 @@ export async function loadDomainGroups(messageBox) {
  */
 export async function saveDomainGroups(domainGroups, messageBox) {
     try {
-        await chrome.storage.sync.set({ [STORAGE_KEY]: domainGroups });
+        const safeGroups = Array.isArray(domainGroups)
+            ? domainGroups.map(normalizeDomainGroup).filter(Boolean)
+            : [];
+        await chrome.storage.sync.set({ [STORAGE_KEY]: safeGroups });
     } catch (error) {
         console.error("Error saving domain groups to storage:", error);
         showMessage(messageBox, "Error saving data.", "error");

@@ -175,6 +175,90 @@ body {
     min-width: 0;
 }
 
+.switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.switch-row.is-disabled {
+    cursor: not-allowed;
+}
+
+.switch-label {
+    font-size: 0.9rem;
+    color: #334155;
+    font-weight: 500;
+}
+
+.toggle-info {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: #64748b;
+    display: none;
+}
+
+.switch-control {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch-control input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+    transition: 0.2s;
+}
+
+.switch-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.switch-control input:checked + .switch-slider {
+    background-color: #2563eb;
+}
+
+.switch-control input:checked + .switch-slider::before {
+    transform: translateX(20px);
+}
+
+.switch-row.is-disabled .switch-label {
+    color: #94a3b8;
+}
+
+.switch-control input:disabled + .switch-slider {
+    background-color: #e2e8f0;
+}
+
+.switch-control input:disabled + .switch-slider::before {
+    background-color: #f8fafc;
+    box-shadow: none;
+}
+
+.switch-row.is-disabled:hover + .toggle-info {
+    display: block;
+}
+
 .accordion-domain-name {
     font-size: 0.92rem;
     font-weight: 600;

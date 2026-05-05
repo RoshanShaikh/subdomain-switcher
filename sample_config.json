@@ -43,5 +43,23 @@
                 "color": "#E53935"
             }
         ]
+    },
+    {
+        "domain": "github",
+        "allowCrossDomain": true,
+        "aliases": [
+            {
+                "name": "GitHub",
+                "subdomain": "",
+                "targetHost": "github.com",
+                "color": "#111827"
+            },
+            {
+                "name": "GitMCP",
+                "subdomain": "",
+                "targetHost": "gitmcp.io",
+                "color": "#2563EB"
+            }
+        ]
     }
 ]
