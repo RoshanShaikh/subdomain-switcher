@@ -7,6 +7,8 @@ A Chrome extension for quickly switching between subdomains of the current page 
 ## Features
 
 - **One-click subdomain switching** — open any configured alias in a new tab, keeping the current path and query string intact
+- **Add current page** — save the page you're on as a new alias in one click, either under an existing domain group or as a brand-new one, with a full color picker right in the popup
+- **Quick-edit from the popup** — when the current page is already saved as an alias, a pencil icon beside its name jumps straight into that alias's editor
 - **Domain-grouped aliases** — organize aliases under their parent domain for a clean, structured overview
 - **Rename domains** — updating a domain name automatically applies to all its aliases everywhere
 - **Custom alias colors** — assign a color to each alias for instant visual identification in the popup
@@ -14,6 +16,7 @@ A Chrome extension for quickly switching between subdomains of the current page 
 - **Color-coded current URL** — the popup header reflects the active alias color when the current tab matches a configured alias
 - **Export / Import** — back up and restore your full configuration as a JSON file
 - **Reset** — clear all data with a confirmation prompt
+- **Feedback, always one click away** — a feedback link in the popup, and one more prompt if you ever uninstall, so we can hear what went wrong or what's missing
 
 ---
 
@@ -48,9 +51,29 @@ A Chrome extension for quickly switching between subdomains of the current page 
 3. The popup shows the current hostname (or its alias name if matched) and buttons for all other aliases in the same domain group.
 4. Click any alias button to open that subdomain in a new tab, preserving the current path and query string.
 
+### Adding the current page as an alias
+
+Instead of opening the configuration page every time, you can save whatever page you're currently on directly from the popup:
+
+1. Navigate to the page you want to save.
+2. Click the **Subdomain Switcher** icon, then click **Add current page** just above the alias buttons. (This button only appears when the current page isn't already saved as an alias.)
+3. Enter an **Alias name** (e.g. `Sandbox`, `Staging`).
+4. Pick a **Button color** — click the swatch to open the same color grid used on the configuration page, choose a preset, or type a hex code directly.
+5. Choose where to save it under **Add to**:
+   - An **existing domain** — shown automatically when the current page matches (or is cross-domain eligible for) one of your configured domains. The subdomain prefix (or cross-domain target) is calculated for you.
+   - **+ Add as new domain** — creates a brand-new domain group using the current hostname as the base (editable before saving).
+6. Click **Save Alias**.
+
+The popup refreshes immediately, and the new alias is available the next time you're on a matching page.
+
+### Editing the current page's alias from the popup
+
+If the page you're on is already saved as an alias, its name appears at the top of the popup with a small **pencil icon** beside it. Click it to jump straight into that alias's editor on the configuration page — no need to hunt through the domain list.
+
 ### Configuring domains and aliases
 
 Click the **gear icon** in the popup to open the configuration page.
+
 
 #### Adding a domain
 
@@ -98,5 +121,5 @@ A sample import file is included in this repository: [`sample_config.json`](samp
 
 - HTML, CSS, JavaScript (ES Modules)
 - [Tailwind CSS](https://tailwindcss.com/) (utility classes via CDN)
-- Chrome Extension APIs: `activeTab`, `storage`, `scripting`
+- Chrome Extension APIs: `activeTab`, `storage`, `runtime` (including a background service worker for `chrome.runtime.setUninstallURL`)
 - Manifest V3

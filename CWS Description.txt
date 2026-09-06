@@ -1,0 +1,45 @@
+Subdomain Switcher — Instantly jump between your environments
+
+If you work across multiple environments of the same application — development, staging, UAT, production — you know the friction. Copy the URL, edit the subdomain, paste it into a new tab, repeat dozens of times a day. Subdomain Switcher eliminates that entirely.
+With one click, the extension opens the same page you're currently on in any of your configured environments — same path, same query parameters, same URL hash. Nothing gets lost in the switch.
+
+How it works?
+You configure your domains and their aliases once. After that, whenever you're on a page that matches one of your domains, the extension popup shows all your configured environments as buttons. Click one, and it opens in a new tab right next to your current one.
+For example, if you're on staging.app.example.com/invoices/123?filter=unpaid and click your Production alias, it opens prod.app.example.com/invoices/123?filter=unpaid — immediately, in a new tab, without any copy-pasting.
+
+Setting up your environments
+Open the configuration page from the gear icon in the popup. Add a domain (e.g. app.example.com), then add aliases beneath it — each alias has a name, a subdomain prefix, and a color. That's it.
+Renaming a domain later? Every alias under it updates automatically. No need to touch individual aliases.
+
+Add environments as you browse
+Don't want to leave the page you're on? Click "Add current page" right in the popup to save it as a new alias on the spot — pick a color, choose an existing domain group or create a new one, and you're done. The button only shows up when the current page isn't already saved, so your popup stays clutter-free. And if the page you're on is already one of your aliases, a small pencil icon appears right next to its name — one click and you're editing that alias, no digging through the domain list required.
+
+Built for teams
+Your configuration exports to a single JSON file. Share it with your team, check it into your repo, or use it to set up a new machine in seconds. Import replaces your current config instantly.
+
+Key features
+
+One-click switching — opens the same page in any configured environment in a new tab
+Add current page on the fly — save whatever page you're on as a new alias, with its own color, in a couple of clicks
+Quick-edit alias — jump straight into editing the current page's alias from the popup
+Path preservation — URL path, query parameters, and hash are always carried over
+Domain groups — organize aliases under their parent domain; add as many domains as you need
+Custom colors — color-code each environment for instant recognition at a glance, with a built-in color picker
+Color-coded header — the popup header takes on your alias color when the current tab is a known environment
+Edit and rename — update a domain name once and it propagates everywhere; edit individual aliases any time
+Duplicate aliases — clone an existing alias as a starting point for a new one
+Export and import — back up or share your full configuration as a JSON file
+Clean, focused UI — everything you need, nothing you don't
+
+
+Who is this for?
+Subdomain Switcher is useful for anyone who regularly navigates between subdomain-based environments:
+
+Developers moving between local, dev, staging, and production
+QA engineers testing features across multiple environment tiers
+DevOps and platform teams managing multiple deployment environments
+Support and success teams who need to reproduce issues across environments
+Anyone who has ever manually edited a subdomain in the address bar more than once
+
+
+If you've ever edited a URL by hand just to switch environments, Subdomain Switcher is for you.

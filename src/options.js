@@ -277,7 +277,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ── Init ──────────────────────────────────────────────────────────────────
 
     domainGroups = await loadDomainGroups(messageBox);
-    showView("config");
+
+    // Deep link from the popup's "edit current alias" button: ?editGroupIndex=X&editAliasIndex=Y
+    const deepLinkParams = new URLSearchParams(window.location.search);
+    const deepLinkGroupParam = deepLinkParams.get("editGroupIndex");
+    const deepLinkAliasParam = deepLinkParams.get("editAliasIndex");
+    const deepLinkGroupIndex = deepLinkGroupParam !== null ? Number(deepLinkGroupParam) : null;
+    const deepLinkAliasIndex = deepLinkAliasParam !== null ? Number(deepLinkAliasParam) : null;
+    const deepLinkAlias =
+        Number.isInteger(deepLinkGroupIndex) &&
+        Number.isInteger(deepLinkAliasIndex) &&
+        domainGroups[deepLinkGroupIndex]?.aliases?.[deepLinkAliasIndex];
+
+    if (deepLinkAlias) {
+        openAccordionIndices.add(deepLinkGroupIndex);
+        openAliasEditor(deepLinkGroupIndex, deepLinkAliasIndex, deepLinkAlias, "edit");
+    } else {
+        showView("config");
+    }
+
     renderColorGrid(colorGrid, setSelectedColor, newAliasColorHidden);
 
     chrome.storage.sync.onChanged.addListener(async (changes) => {
