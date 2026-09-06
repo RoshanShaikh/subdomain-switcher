@@ -17,25 +17,56 @@ body {
 }
 
 .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
     font-size: 1.25rem;
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 15px;
+}
+
+.header-title {
     text-align: center;
-    position: relative;
+    max-width: 75%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-icons-left,
+.header-icons-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.header-icons-left {
+    left: 0;
+}
+
+.header-icons-right {
+    right: 0;
 }
 
 .options-icon {
-    position: absolute;
-    top: 5px;
-    right: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     width: 24px;
     height: 24px;
     padding: 5px;
     border-radius: 50%;
+    border: none;
+    background: none;
     transition: background-color 0.2s ease-in-out;
-    z-index: 20;
+    flex-shrink: 0;
 }
 
 .options-icon:hover {
@@ -43,6 +74,8 @@ body {
 }
 
 .options-icon svg {
+    width: 100%;
+    height: 100%;
     fill: #64748b;
 }
 
@@ -128,4 +161,256 @@ body {
     font-weight: 600;
     color: #555;
     word-wrap: break-word;
+}
+
+.current-url-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+}
+
+.edit-current-alias-btn {
+    position: absolute;
+    right: 0;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.edit-current-alias-btn:hover {
+    background-color: rgba(0, 0, 0, 0.14);
+}
+
+.edit-current-alias-btn svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+/* ── Switch-environment row + Add current page trigger ──────────────────── */
+
+.switch-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.switch-label-text {
+    margin: 0;
+}
+
+.add-current-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: 1px dashed #93c5fd;
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.add-current-btn:hover {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.add-current-btn-icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* ── Add Current Page view ──────────────────────────────────────────────── */
+
+.current-host-display {
+    padding: 8px 10px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.input-group {
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.875rem;
+    color: #4a5568;
+    margin-bottom: 5px;
+}
+
+.text-input,
+select.text-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    background-color: #fff;
+    font-family: inherit;
+}
+
+.input-error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* ── Alias color picker ──────────────────────────────────────────────────── */
+
+.custom-hex-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.color-swatch-preview {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.color-swatch-preview:hover {
+    border-color: #9cd5f5;
+}
+
+.color-picker-dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: 8px;
+    display: none;
+    left: 0;
+    right: 0;
+    margin-top: 5px;
+}
+
+.color-picker-reset {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.color-picker-reset:hover {
+    background-color: #f0f4f8;
+    border-radius: 4px;
+}
+
+.color-picker-reset-icon {
+    width: 16px;
+    height: 16px;
+    fill: #4a5568;
+    margin-right: 8px;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 28px);
+    gap: 4px;
+    padding: 0 5px 5px 5px;
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+
+.color-swatch:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px #a7f3d0;
+}
+
+.color-swatch.selected {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.checkmark {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    fill: white;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+.color-swatch.selected .checkmark {
+    display: block;
+}
+
+.action-btn {
+    background-color: #60a5fa;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    margin-top: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+    background-color: #3b82f6;
+}
+
+.add-btn {
+    background-color: #10b981;
+}
+
+.add-btn:hover {
+    background-color: #059669;
 }

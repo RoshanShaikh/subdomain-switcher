@@ -14,37 +14,209 @@
         <div class="container">
             <div id="mainView">
                 <div class="header">
-                    Subdomain Switcher
-                    <div
-                        id="optionsIcon"
-                        class="options-icon"
-                        title="Configure Aliases"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
+                    <div class="header-icons-left">
+                        <button
+                            id="feedbackIcon"
+                            class="options-icon"
+                            title="Send feedback, report a bug, or request a feature"
+                            type="button"
                         >
-                            <path
-                                d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.07-.75-1.65-1l-.3-.2.43-.72.33-.56c.09-.15.08-.34-.01-.49l-1.65-2.85c-.1-.16-.27-.25-.45-.25h-4c-.18 0-.35.09-.45.25l-1.65 2.85c-.09.15-.1.34-.01.49l.33.56.43-.72.3.2c-.58.25-1.13.6-1.65 1l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.07.75 1.65 1l.3.2-.43.72-.33.56c-.09.15-.08.34.01.49l1.65 2.85c.1.16.27.25.45.25h4c.18 0-.35-.09-.45-.25l-1.65-2.85c-.09-.15-.1-.34-.01-.49l.33-.56.43-.72.3-.2c.58-.25 1.13-.6 1.65-1l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
-                            />
-                        </svg>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            id="githubIcon"
+                            class="options-icon"
+                            title="View source on GitHub"
+                            type="button"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 16 16"
+                            >
+                                <path
+                                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <span class="header-title">Subdomain Switcher</span>
+
+                    <div class="header-icons-right">
+                        <div
+                            id="optionsIcon"
+                            class="options-icon"
+                            title="Configure Aliases"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.07-.75-1.65-1l-.3-.2.43-.72.33-.56c.09-.15.08-.34-.01-.49l-1.65-2.85c-.1-.16-.27-.25-.45-.25h-4c-.18 0-.35.09-.45.25l-1.65 2.85c-.09.15-.1.34-.01.49l.33.56.43-.72.3.2c-.58.25-1.13.6-1.65 1l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.07.75 1.65 1l.3.2-.43.72-.33.56c-.09.15-.08.34.01.49l1.65 2.85c.1.16.27.25.45.25h4c.18 0-.35-.09-.45-.25l-1.65-2.85c-.09-.15-.1-.34-.01-.49l.33-.56.43-.72.3-.2c.58-.25 1.13-.6 1.65-1l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+                                />
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
                 <div id="currentUrlDisplayTable">
                     <table>
                         <tr>
-                            <td id="currentUrlDisplay">Loading...</td>
+                            <td>
+                                <div class="current-url-cell">
+                                    <span id="currentUrlDisplay">Loading...</span>
+                                    <button
+                                        id="editCurrentAliasBtn"
+                                        class="edit-current-alias-btn"
+                                        type="button"
+                                        title="Edit this alias"
+                                        style="display: none"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     </table>
                 </div>
 
-                <p class="text-sm text-gray-600 mb-3">
-                    Click to switch environment:
-                </p>
+                <div class="switch-row-header">
+                    <p class="text-sm text-gray-600 switch-label-text">
+                        Click to switch environment:
+                    </p>
+                    <button
+                        id="addCurrentPageBtn"
+                        class="add-current-btn"
+                        type="button"
+                        title="Add current page as domain/subdomain"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            class="add-current-btn-icon"
+                        >
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                        </svg>
+                        Add current page
+                    </button>
+                </div>
                 <div id="aliases-container" class="mb-5">
                     <!-- Aliases will be loaded here as grouped buttons by JavaScript -->
                 </div>
+            </div>
+
+            <!-- ── Add Current Page view ─────────────────────────────────── -->
+            <div id="addCurrentView" style="display: none">
+                <div class="header">
+                    <div class="header-icons-left">
+                        <div
+                            id="backFromAddCurrentBtn"
+                            class="options-icon"
+                            title="Back"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                    <span class="header-title">Add Current Page</span>
+                </div>
+
+                <div class="input-group">
+                    <label>Current page:</label>
+                    <div id="addCurrentHostDisplay" class="current-host-display">
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="addCurrentAliasName">Alias name:</label>
+                    <input
+                        type="text"
+                        id="addCurrentAliasName"
+                        placeholder="e.g., Sandbox"
+                        class="text-input"
+                    />
+                </div>
+
+                <div class="input-group">
+                    <label for="customHexInput">Button color:</label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            id="customHexInput"
+                            placeholder="#RRGGBB or #RGB"
+                            maxlength="7"
+                            class="custom-hex-input flex-grow"
+                        />
+                        <div
+                            id="newAliasColorDisplay"
+                            class="color-swatch-preview current-color-display"
+                            style="background-color: #3b82f6"
+                        ></div>
+                    </div>
+                    <input type="hidden" id="newAliasColorHidden" value="#3b82f6" />
+                    <div id="colorPickerDropdown" class="color-picker-dropdown">
+                        <div id="colorPickerResetBtn" class="color-picker-reset">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                class="color-picker-reset-icon"
+                            >
+                                <path d="M17 3a2.85 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                <path d="M15 5l4 4" />
+                            </svg>
+                            Reset
+                        </div>
+                        <div id="colorGrid" class="color-grid"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="addCurrentDomainSelect">Add to:</label>
+                    <select id="addCurrentDomainSelect" class="text-input"></select>
+                </div>
+
+                <div
+                    class="input-group"
+                    id="addCurrentNewDomainGroup"
+                    style="display: none"
+                >
+                    <label for="addCurrentNewDomainInput">New domain:</label>
+                    <input
+                        type="text"
+                        id="addCurrentNewDomainInput"
+                        placeholder="e.g., example.com"
+                        class="text-input"
+                    />
+                </div>
+
+                <button id="saveCurrentPageBtn" class="action-btn add-btn" type="button">
+                    Save Alias
+                </button>
             </div>
 
             <div id="messageBox" class="message-box"></div>
